@@ -26,11 +26,6 @@
       "CORS_ORIGIN": "https://project-delta-two-14.vercel.app"
     }
   },
-  "functions": {
-    "app/**/*.{js,ts}": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
