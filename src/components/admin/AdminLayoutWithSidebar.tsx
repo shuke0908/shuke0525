@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 import AdminSidebar from './AdminSidebar';
-import { Helmet } from 'react-helmet';
+import Head from 'next/head';
 
 interface AdminLayoutWithSidebarProps {
   children: ReactNode;
@@ -27,10 +27,10 @@ export default function AdminLayoutWithSidebar({
 
   return (
     <>
-      <Helmet>
+      <Head>
         <title>{pageTitle}</title>
         {description && <meta name='description' content={description} />}
-      </Helmet>
+      </Head>
       <div className='flex min-h-screen w-full bg-background'>
         <AdminSidebar />
         <div className='flex-1 p-8 overflow-hidden'>
