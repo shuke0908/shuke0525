@@ -10,20 +10,20 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://shuke0525-fix1-7sfjdsbr6-shuke0525s-projects-e6c88d83.vercel.app/api",
-    "NEXT_PUBLIC_APP_URL": "https://shuke0525-fix1-7sfjdsbr6-shuke0525s-projects-e6c88d83.vercel.app",
+    "NEXT_PUBLIC_API_URL": "https://project-clean-mcjn6a3hi-shuke0525s-projects-e6c88d83.vercel.app/api",
+    "NEXT_PUBLIC_APP_URL": "https://project-clean-mcjn6a3hi-shuke0525s-projects-e6c88d83.vercel.app",
     "NEXT_PUBLIC_SUPABASE_URL": "https://gfzmwtvnktvvckzbybdl.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmem13dHZua3R2dmNremJ5YmRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3MjIwOTEsImV4cCI6MjA2MjI5ODA5MX0.LI_IZxoQ4bKEMeYGI7j-7LuR0HKGGLs0yOYC7s79Ogs",
-    "CORS_ORIGIN": "https://shuke0525-fix1-7sfjdsbr6-shuke0525s-projects-e6c88d83.vercel.app",
+    "CORS_ORIGIN": "https://project-clean-mcjn6a3hi-shuke0525s-projects-e6c88d83.vercel.app",
     "NODE_ENV": "production"
   },
   "build": {
     "env": {
-      "NEXT_PUBLIC_API_URL": "https://shuke0525-fix1-7sfjdsbr6-shuke0525s-projects-e6c88d83.vercel.app/api",
-      "NEXT_PUBLIC_APP_URL": "https://shuke0525-fix1-7sfjdsbr6-shuke0525s-projects-e6c88d83.vercel.app",
+      "NEXT_PUBLIC_API_URL": "https://project-clean-mcjn6a3hi-shuke0525s-projects-e6c88d83.vercel.app/api",
+      "NEXT_PUBLIC_APP_URL": "https://project-clean-mcjn6a3hi-shuke0525s-projects-e6c88d83.vercel.app",
       "NEXT_PUBLIC_SUPABASE_URL": "https://gfzmwtvnktvvckzbybdl.supabase.co",
       "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmem13dHZua3R2dmNremJ5YmRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3MjIwOTEsImV4cCI6MjA2MjI5ODA5MX0.LI_IZxoQ4bKEMeYGI7j-7LuR0HKGGLs0yOYC7s79Ogs",
-      "CORS_ORIGIN": "https://shuke0525-fix1-7sfjdsbr6-shuke0525s-projects-e6c88d83.vercel.app"
+      "CORS_ORIGIN": "https://project-clean-mcjn6a3hi-shuke0525s-projects-e6c88d83.vercel.app"
     }
   },
   "rewrites": [
