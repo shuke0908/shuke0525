@@ -85,3 +85,5 @@ docker-compose.override.yml
 /attached_assets
 /generated-icon.png
 *.bak
+
+.vercel
