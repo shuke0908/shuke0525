@@ -4,6 +4,7 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './auth/AuthProvider';
 import { Toaster } from './ui/toaster';
+import '../lib/i18n'; // i18n 초기화
 
 // QueryClient 인스턴스를 외부에서 생성하여 SSR과 client 간 일관성 유지
 const queryClient = new QueryClient({

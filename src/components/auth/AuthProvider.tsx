@@ -1,10 +1,13 @@
+'use client';
+
 import React, {
   createContext,
   useContext,
   useState,
   useEffect,
+  ReactNode,
 } from 'react';
-import type { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   useQuery,
   useMutation,
@@ -42,18 +45,28 @@ type UserProfile = {
   // createdAt and updatedAt are not typically needed in AuthContext user object directly
 };
 
-type AuthContextType = {
-  user: UserProfile | null;
+interface User {
+  id: string;
+  email: string;
+  username: string;
+  role: 'user' | 'admin' | 'superadmin';
+  balance: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface AuthContextType {
+  user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  error: Error | null;
-  loginMutation: UseMutationResult<LoginResponse, Error, LoginData>;
-  logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<LoginResponse, Error, RegisterData>;
-  getAuthToken: () => string | null;
-  twoFactorRequired: boolean;
-  setTwoFactorRequired: React.Dispatch<React.SetStateAction<boolean>>;
-};
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshToken: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 type LoginData = {
   email: string;
@@ -61,8 +74,6 @@ type LoginData = {
   captchaToken?: string;
   rememberMe?: boolean;
 };
-
-export const AuthContext = createContext<AuthContextType | null>(null);
 
 // 쿠키에서 인증 토큰 가져오기
 function getAuthTokenFromCookie(): string | null {
@@ -95,231 +106,137 @@ function removeAuthTokenCookie() {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const [authToken, setAuthToken] = useState<string | null>(() => {
-    // SSR에서는 null 반환
-    if (typeof window === 'undefined') return null;
-    return getAuthTokenFromCookie();
-  });
-  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
-  // 클라이언트 사이드 hydration 확인
-  useEffect(() => {
-    setIsClient(true);
-    const token = getAuthTokenFromCookie();
-    if (token !== authToken) {
-      setAuthToken(token);
-    }
-  }, [authToken]);
+  const isAuthenticated = !!user;
 
-  const {
-    data: user,
-    error,
-    isLoading: isLoadingUser,
-  } = useQuery<UserProfile | null, Error>({
-    queryKey: [USER_ROUTES.PROFILE],
-    queryFn: async () => {
-      try {
-        const userData = await apiClient.get<UserProfile>(USER_ROUTES.PROFILE);
-        return userData;
-      } catch (fetchError: any) {
-        console.error('Error fetching user profile:', fetchError);
-        if (fetchError.status === 401) {
-          setAuthToken(null);
-          removeAuthTokenCookie();
+  // 인증 상태 확인
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.user) {
+          setUser(result.user);
+        } else {
+          setUser(null);
         }
-        // Return null instead of throwing to let useQuery handle the error state
-        return null;
-      }
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    enabled: !!authToken && isClient, // 클라이언트에서만 실행
-    retry: false,
-  });
-
-  const loginMutation = useMutation<LoginResponse, Error, LoginData>({
-    mutationFn: async (credentials: LoginData) => {
-      try {
-        // API 경로 상수 사용하여 일관된 경로 호출
-        const data = await apiClient.post<any>(AUTH_ROUTES.LOGIN, {
-          email: credentials.email,
-          password: credentials.password,
-          captchaToken: credentials.captchaToken
-        });
-        
-        // 현재 API 응답 구조: { message: string, user: {...} }
-        if (!data.user) {
-          throw new Error(data.message || 'Login failed');
-        }
-        
-        // AuthProvider가 기대하는 형식으로 변환
-        return {
-          id: data.user.id,
-          email: data.user.email,
-          firstName: data.user.firstName,
-          lastName: data.user.lastName,
-          role: data.user.role,
-          profileImage: data.user.profileImage || null,
-          balance: data.user.balance || '0',
-          authToken: data.user.authToken || 'temp-token', // 임시 토큰
-          twoFactorRequired: data.twoFactorRequired || false,
-          rememberMe: credentials.rememberMe || false,
-        } as LoginResponse;
-      } catch (error: any) {
-        console.error('Login error:', error);
-        throw new Error(error.message || 'Login failed');
-      }
-    },
-    onSuccess: (data: LoginResponse) => {
-      if (data.twoFactorRequired) {
-        toast({
-          title: '2FA Required',
-          description: 'Please enter your 2FA code to complete login.',
-        });
       } else {
-        // 임시 토큰 설정 (실제 JWT 토큰이 구현되면 교체)
-        setAuthToken(data.authToken);
-        setAuthTokenCookie(data.authToken, data.rememberMe || false);
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        const userProfile: UserProfile = {
-          id: data.id,
-          email: data.email,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          role: data.role,
-          profileImage: data.profileImage || null,
-          balance: data.balance || '0',
-        };
-        queryClient.setQueryData([USER_ROUTES.PROFILE], userProfile);
-        
-        if (data.twoFactorRequired) {
-          setTwoFactorRequired(true);
+  // 로그인
+  const login = async (email: string, password: string, rememberMe = false) => {
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password, rememberMe }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Login failed');
+      }
+
+      if (result.success && result.user) {
+        setUser(result.user);
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 로그아웃
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setUser(null);
+      router.push('/auth/login');
+    }
+  };
+
+  // 토큰 갱신
+  const refreshToken = async () => {
+    try {
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.user) {
+          setUser(result.user);
         }
-        toast({
-          title: '로그인 성공',
-          description: '환영합니다!',
-        });
-        
-        // 로그인 성공 후 대시보드로 리디렉션
-        window.location.href = '/dashboard';
+      } else {
+        // 리프레시 실패 시 로그아웃
+        setUser(null);
+        router.push('/auth/login');
       }
-    },
-    onError: (error: Error) => {
-      setAuthToken(null);
-      removeAuthTokenCookie();
-      toast({
-        title: '로그인 실패',
-        description:
-          error.message || '이메일 또는 비밀번호가 올바르지 않습니다.',
-        variant: 'destructive',
-      });
-    },
-  });
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      setUser(null);
+      router.push('/auth/login');
+    }
+  };
 
-  const registerMutation = useMutation<LoginResponse, Error, RegisterData>({
-    mutationFn: async (credentials: RegisterData) => {
-      try {
-        const response = await apiClient.post<any>(AUTH_ROUTES.REGISTER, credentials);
-        
-        // API에서 반환하는 구조에 맞게 변환
-        return {
-          id: response.user.id,
-          email: response.user.email,
-          firstName: response.user.firstName,
-          lastName: response.user.lastName,
-          role: response.user.role,
-          profileImage: response.user.profileImage || null,
-          balance: response.user.balance,
-          authToken: response.authToken || 'temp-token',
-        } as unknown as LoginResponse;
-      } catch (error: any) {
-        throw new Error(error.message || 'Registration failed');
-      }
-    },
-    onSuccess: (data: LoginResponse) => {
-      setAuthToken(data.authToken);
-      setAuthTokenCookie(data.authToken, false);
+  // 컴포넌트 마운트 시 인증 상태 확인
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
-      const userProfile: UserProfile = {
-        id: data.id,
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        role: data.role,
-        profileImage: data.profileImage || null,
-        balance: data.balance || '0',
-      };
-      queryClient.setQueryData([USER_ROUTES.PROFILE], userProfile);
-      toast({
-        title: '회원가입 성공',
-        description: '계정이 성공적으로 생성되었습니다.',
-      });
-      window.location.href = '/dashboard';
-    },
-    onError: (error: Error) => {
-      setAuthToken(null);
-      removeAuthTokenCookie();
-      toast({
-        title: '회원가입 실패',
-        description: error.message || '계정을 생성할 수 없습니다.',
-        variant: 'destructive',
-      });
-    },
-  });
+  // 토큰 자동 갱신 (25분마다)
+  useEffect(() => {
+    if (isAuthenticated) {
+      const interval = setInterval(() => {
+        refreshToken();
+      }, 25 * 60 * 1000); // 25분
 
-  const logoutMutation = useMutation<void, Error, void>({
-    mutationFn: async () => {
-      try {
-        await apiClient.post(AUTH_ROUTES.LOGOUT, {});
-      } catch (error: any) {
-        // 로그아웃은 실패해도 클라이언트에서 토큰을 제거
-        console.warn('Logout API failed:', error);
-      }
-    },
-    onSuccess: () => {
-      setAuthToken(null);
-      removeAuthTokenCookie();
-      queryClient.setQueryData([USER_ROUTES.PROFILE], null);
-      queryClient.clear();
-      toast({
-        title: '로그아웃',
-        description: '성공적으로 로그아웃되었습니다.',
-      });
-      window.location.href = '/login';
-    },
-    onError: (error: Error) => {
-      console.error('Logout error:', error);
-      // 에러가 발생해도 클라이언트 사이드 정리는 수행
-      setAuthToken(null);
-      removeAuthTokenCookie();
-      queryClient.setQueryData([USER_ROUTES.PROFILE], null);
-      queryClient.clear();
-      toast({
-        title: '로그아웃 실패',
-        description: '로그아웃 중 오류가 발생했지만 세션이 정리되었습니다.',
-        variant: 'destructive',
-      });
-      window.location.href = '/login';
-    },
-  });
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
 
-  const getAuthToken = () => authToken;
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    isAuthenticated,
+    login,
+    logout,
+    refreshToken,
+    checkAuth,
+  };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user: user || null,
-        isLoading: isLoadingUser,
-        isAuthenticated: !!user && !!authToken,
-        error,
-        loginMutation,
-        logoutMutation,
-        registerMutation,
-        getAuthToken,
-        twoFactorRequired,
-        setTwoFactorRequired,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
@@ -327,8 +244,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+}
+
+// 인증이 필요한 컴포넌트를 감싸는 HOC
+export function withAuth<P extends object>(
+  Component: React.ComponentType<P>,
+  requiredRole?: 'user' | 'admin' | 'superadmin'
+) {
+  return function AuthenticatedComponent(props: P) {
+    const { user, isLoading } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+      if (!isLoading) {
+        if (!user) {
+          router.push('/auth/login');
+          return;
+        }
+
+        if (requiredRole) {
+          const roleHierarchy = {
+            user: 0,
+            admin: 1,
+            superadmin: 2
+          };
+
+          const userLevel = roleHierarchy[user.role] || -1;
+          const requiredLevel = roleHierarchy[requiredRole] || 999;
+
+          if (userLevel < requiredLevel) {
+            router.push('/auth/forbidden');
+            return;
+          }
+        }
+      }
+    }, [user, isLoading, router]);
+
+    if (isLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+
+    if (!user) {
+      return null;
+    }
+
+    if (requiredRole) {
+      const roleHierarchy = {
+        user: 0,
+        admin: 1,
+        superadmin: 2
+      };
+
+      const userLevel = roleHierarchy[user.role] || -1;
+      const requiredLevel = roleHierarchy[requiredRole] || 999;
+
+      if (userLevel < requiredLevel) {
+        return null;
+      }
+    }
+
+    return <Component {...props} />;
+  };
 }

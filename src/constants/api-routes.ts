@@ -6,28 +6,33 @@
  * baseURL이 '/api'인 경우, 여기의 경로에는 '/api'를 포함하지 않습니다.
  */
 
-// ===== 인증 관련 API =====
+// ===== 인증 관련 API (실제 구현됨) =====
 export const AUTH_ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register', 
   LOGOUT: '/logout',
+  ME: '/me',
   REFRESH: '/auth/refresh',
   FORGOT_PASSWORD: '/auth/forgot-password',
-  RESET_PASSWORD: '/auth/reset-password',
-  VERIFY_EMAIL: '/auth/verify-email',
   CHANGE_PASSWORD: '/auth/change-password',
   
-  // 2FA 관련
+  // TODO: 향후 구현 예정
+  RESET_PASSWORD: '/auth/reset-password',
+  VERIFY_EMAIL: '/auth/verify-email',
+  
+  // TODO: 2FA 관련 (향후 구현)
   SETUP_2FA: '/auth/setup-2fa',
   ENABLE_2FA: '/auth/enable-2fa',
   DISABLE_2FA: '/auth/disable-2fa',
   VERIFY_2FA: '/auth/verify-2fa',
 } as const;
 
-// ===== 사용자 관련 API =====
+// ===== 사용자 관련 API (부분 구현됨) =====
 export const USER_ROUTES = {
   PROFILE: '/user/profile',
   UPDATE_PROFILE: '/user/profile',
+  
+  // TODO: 향후 구현 예정
   BALANCE: '/user/balance',
   TRANSACTIONS: '/user/transactions',
   UPLOAD_AVATAR: '/user/avatar',
@@ -35,7 +40,19 @@ export const USER_ROUTES = {
   VERIFY_WITHDRAWAL_PASSWORD: '/user/verify-withdrawal-password',
 } as const;
 
-// ===== 거래 관련 API =====
+// ===== 시스템 관련 API (구현됨) =====
+export const SYSTEM_ROUTES = {
+  HEALTH: '/health',
+  
+  // TODO: 향후 구현 예정
+  TEST: '/test',
+  ENV_CHECK: '/env-check',
+  CSRF_TOKEN: '/csrf-token',
+} as const;
+
+// ===== 향후 구현 예정 API들 =====
+
+// 거래 관련 API (미구현)
 export const TRADE_ROUTES = {
   // 플래시 트레이딩
   FLASH_TRADE_SETTINGS: '/flash-trade/settings',
@@ -53,7 +70,7 @@ export const TRADE_ROUTES = {
   LEVERAGES: '/trade/leverages',
 } as const;
 
-// ===== 관리자 관련 API =====
+// 관리자 관련 API (미구현)
 export const ADMIN_ROUTES = {
   DASHBOARD_STATS: '/admin/dashboard/stats',
   USERS: '/admin/users',
@@ -98,7 +115,7 @@ export const ADMIN_ROUTES = {
   SET_QUANT_AI_PERFORMANCE: '/admin/users/quant-ai-performance',
 } as const;
 
-// ===== 금융 관련 API =====
+// 금융 관련 API (미구현)
 export const FINANCE_ROUTES = {
   DEPOSITS: '/finance/deposits',
   WITHDRAWALS: '/finance/withdrawals',
@@ -107,7 +124,7 @@ export const FINANCE_ROUTES = {
   SUPPORTED_COINS: '/finance/supported-coins',
 } as const;
 
-// ===== KYC 관련 API =====
+// KYC 관련 API (미구현)
 export const KYC_ROUTES = {
   STATUS: '/kyc/status',
   SUBMIT_DOCUMENTS: '/kyc/documents',
@@ -115,7 +132,7 @@ export const KYC_ROUTES = {
   UPLOAD_DOCUMENT: '/kyc/upload-document',
 } as const;
 
-// ===== 지원 관련 API =====
+// 지원 관련 API (미구현)
 export const SUPPORT_ROUTES = {
   TICKETS: '/support/tickets',
   CREATE_TICKET: '/support/tickets',
@@ -125,7 +142,7 @@ export const SUPPORT_ROUTES = {
   ADD_MESSAGE: '/support/tickets/messages',
 } as const;
 
-// ===== 지갑 관련 API =====
+// 지갑 관련 API (미구현)
 export const WALLET_ROUTES = {
   BALANCE: '/wallet/balance',
   TRANSACTIONS: '/wallet/transactions',
@@ -137,7 +154,7 @@ export const WALLET_ROUTES = {
   CREATE_WITHDRAWAL: '/wallet/withdrawals',
 } as const;
 
-// ===== 보너스 관련 API =====
+// 보너스 관련 API (미구현)
 export const BONUS_ROUTES = {
   BONUSES: '/bonus/bonuses',
   USER_BONUSES: '/bonus/user-bonuses',
@@ -147,7 +164,7 @@ export const BONUS_ROUTES = {
   REDEEM_PROMOTION: '/bonus/redeem-promotion',
 } as const;
 
-// ===== 설정 관련 API =====
+// 설정 관련 API (미구현)
 export const SETTINGS_ROUTES = {
   SETTINGS: '/settings',
   UPDATE_SETTINGS: '/settings',
@@ -156,18 +173,13 @@ export const SETTINGS_ROUTES = {
   UPDATE_SECURITY_SETTINGS: '/settings/security',
 } as const;
 
-// ===== 시스템 관련 API =====
-export const SYSTEM_ROUTES = {
-  HEALTH: '/health',
-  TEST: '/test',
-  ENV_CHECK: '/env-check',
-  CSRF_TOKEN: '/csrf-token',
-} as const;
-
 // ===== 통합 API 경로 객체 =====
 export const API_ROUTES = {
   AUTH: AUTH_ROUTES,
   USER: USER_ROUTES,
+  SYSTEM: SYSTEM_ROUTES,
+  
+  // 향후 구현 예정
   TRADE: TRADE_ROUTES,
   ADMIN: ADMIN_ROUTES,
   FINANCE: FINANCE_ROUTES,
@@ -176,7 +188,24 @@ export const API_ROUTES = {
   WALLET: WALLET_ROUTES,
   BONUS: BONUS_ROUTES,
   SETTINGS: SETTINGS_ROUTES,
-  SYSTEM: SYSTEM_ROUTES,
+} as const;
+
+// ===== 현재 구현된 API 경로들만 =====
+export const IMPLEMENTED_ROUTES = {
+  // 인증
+  LOGIN: AUTH_ROUTES.LOGIN,
+  REGISTER: AUTH_ROUTES.REGISTER,
+  LOGOUT: AUTH_ROUTES.LOGOUT,
+  ME: AUTH_ROUTES.ME,
+  REFRESH: AUTH_ROUTES.REFRESH,
+  FORGOT_PASSWORD: AUTH_ROUTES.FORGOT_PASSWORD,
+  CHANGE_PASSWORD: AUTH_ROUTES.CHANGE_PASSWORD,
+  
+  // 사용자
+  PROFILE: USER_ROUTES.PROFILE,
+  
+  // 시스템
+  HEALTH: SYSTEM_ROUTES.HEALTH,
 } as const;
 
 // ===== 타입 정의 =====
@@ -194,4 +223,6 @@ export type SystemRoute = typeof SYSTEM_ROUTES[keyof typeof SYSTEM_ROUTES];
 
 export type ApiRoute = AuthRoute | UserRoute | TradeRoute | AdminRoute | 
   FinanceRoute | KycRoute | SupportRoute | WalletRoute | BonusRoute | 
-  SettingsRoute | SystemRoute; 
+  SettingsRoute | SystemRoute;
+
+export type ImplementedRoute = typeof IMPLEMENTED_ROUTES[keyof typeof IMPLEMENTED_ROUTES]; 

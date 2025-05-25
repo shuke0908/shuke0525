@@ -219,5 +219,18 @@
     "emailVerified": "Email Verified",
     "sendVerificationEmail": "Send Verification Email",
     "verificationEmailSent": "Verification email sent"
-  }
+  },
+  "title": "Wallet",
+  "balance": "Balance",
+  "deposit": "Deposit",
+  "withdraw": "Withdraw",
+  "history": "Transaction History",
+  "address": "Address",
+  "amount": "Amount",
+  "fee": "Fee",
+  "network": "Network",
+  "status": "Status",
+  "pending": "Pending",
+  "completed": "Completed",
+  "failed": "Failed"
 }

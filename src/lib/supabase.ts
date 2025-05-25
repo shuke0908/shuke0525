@@ -1,25 +1,56 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase 클라이언트 설정
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+// Supabase 설정
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gfzmwtvnktvvckzbybdl.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmem13dHZua3R2dmNremJ5YmRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3MjIwOTEsImV4cCI6MjA2MjI5ODA5MX0.LI_IZxoQ4bKEMeYGI7j-7LuR0HKGGLs0yOYC7s79Ogs';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error(
-    'Supabase URL or Anonymous Key is missing. Please check your environment variables.'
-  );
-}
+// 클라이언트 사이드 Supabase 클라이언트
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// 개발 환경에서 로깅
-if (process.env.NODE_ENV !== 'production') {
-  console.log('Connecting to Supabase at:', supabaseUrl);
-}
+// 서버 사이드 Supabase 클라이언트 (Service Role Key 사용)
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmem13dHZua3R2dmNremJ5YmRsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjcyMjA5MSwiZXhwIjoyMDYyMjk4MDkxfQ.m1q3Qeqiudk3I9E6i12FGZ9krQiOyN0_xJz5yiSMJtg';
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
+    autoRefreshToken: false,
+    persistSession: false
+  }
 });
 
-export default supabase;
+// 데이터베이스 타입 정의
+export interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  role: 'user' | 'admin';
+  balance: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FlashTrade {
+  id: string;
+  user_id: string;
+  amount: number;
+  direction: 'up' | 'down';
+  duration: number;
+  start_price: number;
+  end_price?: number;
+  result?: 'win' | 'lose';
+  profit?: number;
+  status: 'active' | 'completed' | 'cancelled';
+  created_at: string;
+  expires_at: string;
+}
+
+export interface AdminSettings {
+  id: string;
+  user_id?: string; // VARCHAR 타입 (users.id와 호환)
+  win_rate: number;
+  max_profit_rate: number;
+  force_result?: 'win' | 'lose';
+  created_at: string;
+  updated_at: string;
+}

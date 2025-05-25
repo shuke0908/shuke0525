@@ -59,8 +59,8 @@ export default function AdminSidebar() {
 
   const monitoringItems = [
     {
-      name: 'Flash Trades',
-      path: '/admin/flash-trade',
+      name: 'Flash Trade Control',
+      path: '/admin/flash-trade-control',
       icon: Timer,
       badge: 2,
     },

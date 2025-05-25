@@ -1,4 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+"use client";
+
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'dark' | 'light' | 'system';
 
@@ -10,7 +12,7 @@ type ThemeProviderProps = {
 
 type ThemeProviderState = {
   theme: Theme;
-  setTheme: (_theme: Theme) => void;
+  setTheme: (theme: Theme) => void;
 };
 
 const initialState: ThemeProviderState = {
@@ -34,8 +36,6 @@ export function ThemeProvider({
   });
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
     const root = window.document.documentElement;
 
     root.classList.remove('light', 'dark');
@@ -55,11 +55,9 @@ export function ThemeProvider({
 
   const value = {
     theme,
-    setTheme: (_theme: Theme) => {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(storageKey, _theme);
-      }
-      setTheme(_theme);
+    setTheme: (theme: Theme) => {
+      localStorage.setItem(storageKey, theme);
+      setTheme(theme);
     },
   };
 

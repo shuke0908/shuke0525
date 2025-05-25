@@ -1,0 +1,301 @@
+{
+  "flashTrade": {
+    "enabled": true,
+    "minAmount": 10,
+    "maxAmount": 10000,
+    "timeOptions": [
+      30,
+      60,
+      120,
+      300
+    ],
+    "defaultWinRate": 50,
+    "profitRange": {
+      "min": 70,
+      "max": 80
+    },
+    "availableAssets": [
+      "BTC",
+      "ETH",
+      "USDT",
+      "BNB",
+      "XRP",
+      "SOL",
+      "ADA",
+      "AVAX"
+    ]
+  },
+  "quickTrade": {
+    "enabled": true,
+    "minAmount": 1,
+    "maxAmount": 50000,
+    "leverageOptions": [
+      1,
+      2,
+      5,
+      10,
+      20,
+      50,
+      100
+    ],
+    "defaultLeverage": 10,
+    "maxLeverage": 100,
+    "tradingPairs": [
+      {
+        "symbol": "BTC/USDT",
+        "enabled": true,
+        "spread": 0.1
+      },
+      {
+        "symbol": "ETH/USDT",
+        "enabled": true,
+        "spread": 0.1
+      },
+      {
+        "symbol": "BNB/USDT",
+        "enabled": true,
+        "spread": 0.1
+      },
+      {
+        "symbol": "XRP/USDT",
+        "enabled": true,
+        "spread": 0.1
+      },
+      {
+        "symbol": "SOL/USDT",
+        "enabled": true,
+        "spread": 0.1
+      },
+      {
+        "symbol": "ADA/USDT",
+        "enabled": true,
+        "spread": 0.1
+      },
+      {
+        "symbol": "AVAX/USDT",
+        "enabled": true,
+        "spread": 0.1
+      },
+      {
+        "symbol": "EUR/USD",
+        "enabled": true,
+        "spread": 0.05
+      },
+      {
+        "symbol": "GBP/USD",
+        "enabled": true,
+        "spread": 0.05
+      },
+      {
+        "symbol": "USD/JPY",
+        "enabled": true,
+        "spread": 0.05
+      }
+    ],
+    "orderTypes": [
+      "market",
+      "limit"
+    ],
+    "defaultWinRate": 55,
+    "profitRange": {
+      "min": 75,
+      "max": 85
+    }
+  },
+  "quantAI": {
+    "enabled": true,
+    "minAmount": 100,
+    "maxAmount": 100000,
+    "strategies": [
+      {
+        "name": "conservative",
+        "label": "보수적",
+        "enabled": true,
+        "winRate": 70,
+        "profitRange": {
+          "min": 60,
+          "max": 70
+        },
+        "riskLevel": "low"
+      },
+      {
+        "name": "balanced",
+        "label": "균형",
+        "enabled": true,
+        "winRate": 65,
+        "profitRange": {
+          "min": 70,
+          "max": 80
+        },
+        "riskLevel": "medium"
+      },
+      {
+        "name": "aggressive",
+        "label": "공격적",
+        "enabled": true,
+        "winRate": 60,
+        "profitRange": {
+          "min": 80,
+          "max": 95
+        },
+        "riskLevel": "high"
+      }
+    ],
+    "investmentDuration": [
+      1,
+      3,
+      7,
+      14,
+      30
+    ],
+    "defaultDuration": 7,
+    "availableAssets": [
+      "BTC",
+      "ETH",
+      "USDT",
+      "BNB",
+      "XRP",
+      "SOL",
+      "ADA",
+      "AVAX"
+    ]
+  },
+  "wallet": {
+    "enabled": true,
+    "supportedCoins": [
+      {
+        "symbol": "BTC",
+        "name": "Bitcoin",
+        "enabled": true,
+        "networks": [
+          "Bitcoin"
+        ],
+        "minDeposit": 0.001,
+        "maxDeposit": 10,
+        "minWithdraw": 0.001,
+        "maxWithdraw": 5,
+        "depositFee": 0,
+        "withdrawFee": 0.0005,
+        "confirmations": 3
+      },
+      {
+        "symbol": "ETH",
+        "name": "Ethereum",
+        "enabled": true,
+        "networks": [
+          "Ethereum",
+          "BSC"
+        ],
+        "minDeposit": 0.01,
+        "maxDeposit": 100,
+        "minWithdraw": 0.01,
+        "maxWithdraw": 50,
+        "depositFee": 0,
+        "withdrawFee": 0.005,
+        "confirmations": 12
+      },
+      {
+        "symbol": "USDT",
+        "name": "Tether USD",
+        "enabled": true,
+        "networks": [
+          "Ethereum",
+          "BSC",
+          "Tron"
+        ],
+        "minDeposit": 10,
+        "maxDeposit": 100000,
+        "minWithdraw": 10,
+        "maxWithdraw": 50000,
+        "depositFee": 0,
+        "withdrawFee": 1,
+        "confirmations": 1
+      },
+      {
+        "symbol": "BNB",
+        "name": "BNB",
+        "enabled": true,
+        "networks": [
+          "BSC"
+        ],
+        "minDeposit": 0.01,
+        "maxDeposit": 1000,
+        "minWithdraw": 0.01,
+        "maxWithdraw": 500,
+        "depositFee": 0,
+        "withdrawFee": 0.001,
+        "confirmations": 15
+      },
+      {
+        "symbol": "XRP",
+        "name": "Ripple",
+        "enabled": true,
+        "networks": [
+          "Ripple"
+        ],
+        "minDeposit": 1,
+        "maxDeposit": 100000,
+        "minWithdraw": 1,
+        "maxWithdraw": 50000,
+        "depositFee": 0,
+        "withdrawFee": 0.1,
+        "confirmations": 1
+      },
+      {
+        "symbol": "SOL",
+        "name": "Solana",
+        "enabled": true,
+        "networks": [
+          "Solana"
+        ],
+        "minDeposit": 0.1,
+        "maxDeposit": 10000,
+        "minWithdraw": 0.1,
+        "maxWithdraw": 5000,
+        "depositFee": 0,
+        "withdrawFee": 0.01,
+        "confirmations": 1
+      },
+      {
+        "symbol": "ADA",
+        "name": "Cardano",
+        "enabled": true,
+        "networks": [
+          "Cardano"
+        ],
+        "minDeposit": 5,
+        "maxDeposit": 100000,
+        "minWithdraw": 5,
+        "maxWithdraw": 50000,
+        "depositFee": 0,
+        "withdrawFee": 1,
+        "confirmations": 15
+      },
+      {
+        "symbol": "AVAX",
+        "name": "Avalanche",
+        "enabled": true,
+        "networks": [
+          "Avalanche"
+        ],
+        "minDeposit": 0.1,
+        "maxDeposit": 10000,
+        "minWithdraw": 0.1,
+        "maxWithdraw": 5000,
+        "depositFee": 0,
+        "withdrawFee": 0.01,
+        "confirmations": 1
+      }
+    ]
+  },
+  "global": {
+    "maintenanceMode": false,
+    "tradingEnabled": true,
+    "newRegistrationEnabled": true,
+    "kycRequired": false,
+    "maxDailyTrades": 100,
+    "maxDailyVolume": 1000000,
+    "defaultCurrency": "USD",
+    "timezone": "UTC"
+  }
+}

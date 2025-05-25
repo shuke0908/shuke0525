@@ -38,23 +38,23 @@
   },
   "landing": {
     "title": "Next-Generation Trading Platform",
-    "subtitle": "Experience the future of cryptocurrency trading with our advanced AI-powered platform",
+    "subtitle": "Experience the future with our AI-powered advanced cryptocurrency trading platform",
     "login": "Login",
     "register": "Sign Up",
     "goDashboard": "Go to Dashboard",
     "signUpNow": "Sign Up Now",
     "featuresTitle": "Why Choose Our Platform",
     "flashTradeTitle": "Flash Trading",
-    "flashTradeDesc": "Execute trades in milliseconds with our optimized infrastructure",
+    "flashTradeDesc": "Execute trades in milliseconds with optimized infrastructure",
     "quantAITitle": "Quant AI",
-    "quantAIDesc": "AI-powered investment strategies with machine learning",
+    "quantAIDesc": "Machine learning-based AI investment strategies",
     "securityTitle": "Secure Platform",
     "securityDesc": "Enterprise-grade security with KYC and 2FA protection",
     "quickTradeTitle": "Quick Trade",
     "quickTradeDesc": "Simple and fast trading experience for all users",
     "ctaTitle": "Ready to Start Trading?",
     "ctaSubtitle": "Join thousands of traders who trust our platform",
-    "copyright": "© {{year}} FinancePro. All rights reserved.",
+    "copyright": "© 2025 FinancePro. All rights reserved.",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "contact": "Contact Us"
@@ -172,5 +172,24 @@
     "profit": "Profit",
     "loss": "Loss",
     "settings": "Settings"
+  },
+  "navigation": {
+    "home": "Home",
+    "login": "Login",
+    "register": "Register",
+    "dashboard": "Dashboard",
+    "trading": "Trading",
+    "wallet": "Wallet",
+    "support": "Support"
+  },
+  "buttons": {
+    "getStarted": "Get Started",
+    "login": "Login",
+    "register": "Register",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete"
   }
 }

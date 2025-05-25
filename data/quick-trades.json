@@ -1,0 +1,19 @@
+[
+  {
+    "id": "qt_1748202785106_1t4j0mpyj",
+    "user_id": "admin-1",
+    "symbol": "BTC/USDT",
+    "direction": "buy",
+    "amount": 10,
+    "leverage": 1,
+    "order_type": "market",
+    "entry_price": 43252.79083760086,
+    "exit_price": 43940.059345120266,
+    "limit_price": null,
+    "result": "win",
+    "profit": 8.36311894586284,
+    "status": "completed",
+    "created_at": "2025-05-25T19:53:05.106Z",
+    "completed_at": "2025-05-25T19:53:05.106Z"
+  }
+]

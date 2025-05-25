@@ -31,319 +31,135 @@ interface WebSocketHookReturn {
   subscribeTo: (_channel: string, _callback: (_data: any) => void) => () => void;
 }
 
-export function useWebSocket(config: WebSocketConfig): WebSocketHookReturn {
-  const { actions } = useAppState();
-  const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<
-    'connecting' | 'connected' | 'disconnected' | 'error'
-  >('disconnected');
-  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
+interface UseWebSocketOptions {
+  userId?: string;
+  token?: string;
+  isAdmin?: boolean;
+  onTradeResult?: (result: any) => void;
+  onTradeActivity?: (activity: any) => void;
+  onSettingsUpdate?: (settings: any) => void;
+  onMessage?: (message: WebSocketMessage) => void;
+  onConnect?: () => void;
+  onDisconnect?: () => void;
+  onError?: (error: Event) => void;
+  reconnectInterval?: number;
+  maxReconnectAttempts?: number;
+}
 
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
-  const heartbeatIntervalRef = useRef<NodeJS.Timeout>();
-  const reconnectAttempts = useRef(0);
-  const messageHistory = useRef<WebSocketMessage[]>([]);
-  const messageQueue = useRef<any[]>([]);
-  const subscriptions = useRef<Map<string, ((_data: any) => void)[]>>(new Map());
-  const socketRef = useRef<WebSocket | null>(null);
-
+export function useWebSocket(url: string, options: UseWebSocketOptions = {}) {
   const {
-    url,
-    protocols,
+    onMessage,
+    onConnect,
+    onDisconnect,
+    onError,
     reconnectInterval = 3000,
-    maxReconnectAttempts = 5,
-    heartbeatInterval = 30000,
-    messageQueueSize = 100,
-    binaryType = 'blob',
-  } = config;
+    maxReconnectAttempts = 5
+  } = options;
 
-  // 메시지 히스토리 관리
-  const addToHistory = useCallback(
-    (message: WebSocketMessage) => {
-      messageHistory.current = [
-        message,
-        ...messageHistory.current.slice(0, messageQueueSize - 1),
-      ];
-    },
-    [messageQueueSize]
-  );
+  const [isConnected, setIsConnected] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
+  
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const getMessageHistory = useCallback(() => messageHistory.current, []);
-  const clearMessageHistory = useCallback(() => {
-    messageHistory.current = [];
-  }, []);
-
-  // 구독 관리
-  const subscribeTo = useCallback(
-    (_channel: string, _callback: (_data: any) => void) => {
-      if (!subscriptions.current.has(_channel)) {
-        subscriptions.current.set(_channel, []);
-      }
-      subscriptions.current.get(_channel)!.push(_callback);
-
-      // 구독 해제 함수 반환
-      return () => {
-        const callbacks = subscriptions.current.get(_channel);
-        if (callbacks) {
-          const index = callbacks.indexOf(_callback);
-          if (index > -1) {
-            callbacks.splice(index, 1);
-          }
-          if (callbacks.length === 0) {
-            subscriptions.current.delete(_channel);
-          }
-        }
-      };
-    },
-    []
-  );
-
-  // 메시지 발송
-  const sendMessage = useCallback(
-    (type: string, data: any) => {
-      const message = {
-        id: Math.random().toString(36).substr(2, 9),
-        type,
-        data,
-        timestamp: Date.now(),
-      };
-
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(message));
-      } else {
-        // 연결이 없으면 큐에 저장
-        messageQueue.current.push(message);
-      }
-    },
-    [socket]
-  );
-
-  const sendJsonMessage = useCallback(
-    (message: any) => {
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(message));
-      } else {
-        messageQueue.current.push(message);
-      }
-    },
-    [socket]
-  );
-
-  // 대기 중인 메시지 전송
-  const flushMessageQueue = useCallback(() => {
-    while (
-      messageQueue.current.length > 0 &&
-      socket &&
-      socket.readyState === WebSocket.OPEN
-    ) {
-      const message = messageQueue.current.shift();
-      socket.send(JSON.stringify(message));
-    }
-  }, [socket]);
-
-  // 하트비트 설정
-  const setupHeartbeat = useCallback(() => {
-    if (heartbeatIntervalRef.current) {
-      clearInterval(heartbeatIntervalRef.current);
-    }
-
-    heartbeatIntervalRef.current = setInterval(() => {
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        sendMessage('ping', { timestamp: Date.now() });
-      }
-    }, heartbeatInterval);
-  }, [socket, heartbeatInterval, sendMessage]);
-
-  // WebSocket 연결 생성
   const connect = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      return;
+    }
+
+    setConnectionStatus('connecting');
+    
     try {
-      setConnectionStatus('connecting');
+      wsRef.current = new WebSocket(url);
 
-      const ws = new WebSocket(url, protocols);
-      ws.binaryType = binaryType;
-      socketRef.current = ws;
-
-      ws.onopen = () => {
-        console.log('WebSocket 연결됨:', url);
-        setSocket(ws);
+      wsRef.current.onopen = () => {
+        setIsConnected(true);
         setConnectionStatus('connected');
-        reconnectAttempts.current = 0;
-
-        // 대기 중인 메시지 전송
-        flushMessageQueue();
-
-        // 하트비트 설정
-        setupHeartbeat();
+        reconnectAttemptsRef.current = 0;
+        onConnect?.();
       };
 
-      ws.onclose = event => {
-        console.log('WebSocket 연결 종료:', event.code, event.reason);
-        setSocket(null);
-        setConnectionStatus('disconnected');
-
-        // 하트비트 정리
-        if (heartbeatIntervalRef.current) {
-          clearInterval(heartbeatIntervalRef.current);
+      wsRef.current.onmessage = (event) => {
+        try {
+          const message: WebSocketMessage = JSON.parse(event.data);
+          setLastMessage(message);
+          onMessage?.(message);
+        } catch (error) {
+          console.error('Failed to parse WebSocket message:', error);
         }
+      };
+
+      wsRef.current.onclose = () => {
+        setIsConnected(false);
+        setConnectionStatus('disconnected');
+        onDisconnect?.();
 
         // 자동 재연결 시도
-        if (
-          reconnectAttempts.current < maxReconnectAttempts &&
-          !event.wasClean
-        ) {
-          reconnectAttempts.current++;
-          console.log(
-            `재연결 시도 ${reconnectAttempts.current}/${maxReconnectAttempts}`
-          );
-
-          reconnectTimeoutRef.current = setTimeout(
-            () => {
-              connect();
-            },
-            reconnectInterval * Math.pow(2, reconnectAttempts.current - 1)
-          ); // 지수 백오프
+        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+          reconnectAttemptsRef.current++;
+          reconnectTimeoutRef.current = setTimeout(() => {
+            connect();
+          }, reconnectInterval);
         }
       };
 
-      ws.onerror = error => {
-        console.error('WebSocket 오류:', error);
+      wsRef.current.onerror = (error) => {
         setConnectionStatus('error');
-      };
-
-      ws.onmessage = event => {
-        try {
-          const rawData =
-            typeof event.data === 'string'
-              ? JSON.parse(event.data)
-              : event.data;
-
-          const message: WebSocketMessage = {
-            id: rawData.id || Math.random().toString(36).substr(2, 9),
-            type: rawData.type || 'message',
-            data: rawData.data || rawData,
-            timestamp: rawData.timestamp || Date.now(),
-          };
-
-          setLastMessage(message);
-          addToHistory(message);
-
-          // 구독자들에게 메시지 전달
-          if (message.type && subscriptions.current.has(message.type)) {
-            const callbacks = subscriptions.current.get(message.type);
-            callbacks?.forEach(callback => {
-              try {
-                callback(message.data);
-              } catch (error) {
-                console.error('구독 콜백 오류:', error);
-              }
-            });
-          }
-
-          // 특별한 메시지 타입 처리
-          switch (message.type) {
-            case 'pong':
-              // 하트비트 응답 처리
-              break;
-            case 'market_data':
-              actions.updateMarketData(message.data.symbol, message.data);
-              break;
-            case 'notification':
-              actions.addNotification({
-                type: message.data.type || 'info',
-                title: message.data.title,
-                message: message.data.message,
-                read: false,
-              });
-              break;
-            default:
-              break;
-          }
-        } catch (error) {
-          console.error('메시지 파싱 오류:', error);
-        }
+        onError?.(error);
       };
     } catch (error) {
-      console.error('WebSocket 연결 생성 오류:', error);
       setConnectionStatus('error');
+      console.error('Failed to create WebSocket connection:', error);
     }
-  }, [
-    url,
-    protocols,
-    binaryType,
-    maxReconnectAttempts,
-    reconnectInterval,
-    actions,
-    addToHistory,
-    flushMessageQueue,
-    setupHeartbeat,
-  ]);
+  }, [url, onMessage, onConnect, onDisconnect, onError, reconnectInterval, maxReconnectAttempts]);
 
-  // 수동 재연결
-  const reconnect = useCallback(() => {
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-    }
-
-    if (socketRef.current) {
-      socketRef.current.close();
-    }
-
-    reconnectAttempts.current = 0;
-    connect();
-  }, [connect]);
-
-  // 연결 해제
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
     }
-
-    if (heartbeatIntervalRef.current) {
-      clearInterval(heartbeatIntervalRef.current);
+    
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
     }
-
-    if (socketRef.current) {
-      socketRef.current.close(1000, 'Manual disconnect');
-    }
-
-    setSocket(null);
+    
+    setIsConnected(false);
     setConnectionStatus('disconnected');
   }, []);
 
-  // 초기 연결
+  const sendMessage = useCallback((message: WebSocketMessage) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(message));
+      return true;
+    }
+    return false;
+  }, []);
+
   useEffect(() => {
     connect();
 
     return () => {
       disconnect();
     };
-  }, [url, connect, disconnect]);
-
-  // 컴포넌트 언마운트 시 정리
-  useEffect(() => {
-    return () => {
-      disconnect();
-    };
-  }, [disconnect]);
+  }, [connect, disconnect]);
 
   return {
-    socket,
+    isConnected,
     connectionStatus,
     lastMessage,
     sendMessage,
-    sendJsonMessage,
-    getMessageHistory,
-    clearMessageHistory,
-    reconnect,
-    disconnect,
-    subscribeTo,
+    connect,
+    disconnect
   };
 }
 
 // 실시간 마켓 데이터 전용 훅
 export function useRealTimeMarketData(symbols: string[]) {
   const { subscribeTo, sendMessage, connectionStatus } = useWebSocket({
-    url: process.env.REACT_APP_WS_MARKET_URL || 'ws://localhost:8080/market',
+    url: process.env.REACT_APP_WS_MARKET_URL || 'ws://localhost:8082/market',
   });
 
   const [marketData, setMarketData] = useState<Record<string, any>>({});
@@ -378,7 +194,7 @@ export function useNotificationSocket() {
   const { subscribeTo, connectionStatus } = useWebSocket({
     url:
       process.env.REACT_APP_WS_NOTIFICATION_URL ||
-      'ws://localhost:8080/notifications',
+      'ws://localhost:8082/notifications',
   });
 
   const { addNotification } = useAppState().actions;

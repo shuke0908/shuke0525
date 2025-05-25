@@ -1,7 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
+import { NextRequest } from 'next/server';
+import bcrypt from 'bcryptjs';
+import { findUserByEmail, getAllUsers, type User } from '@/lib/userStore';
+import { generateToken, getCookieOptions, getUserIdCookieOptions } from '@/lib/auth';
+import { createSuccessResponse, createValidationErrorResponse, createAuthErrorResponse, createErrorResponse } from '@/lib/api-response';
+import { createOptionsResponse } from '@/lib/cors';
 
 export async function POST(request: NextRequest) {
   console.log('🔐 Login attempt via App Router');
@@ -11,145 +13,63 @@ export async function POST(request: NextRequest) {
     const { email, password } = body;
     
     console.log(`Login attempt for email: ${email}`);
+    const allUsers = await getAllUsers();
+    console.log(`현재 등록된 사용자 수: ${allUsers.length}`);
     
-    // 테스트 인증 (실제 환경에서는 데이터베이스 검증)
-    if (email === 'shuke0525@gmail.com' && password === 'michael112') {
-      // JWT 토큰 생성
-      const authToken = jwt.sign(
-        { userId: '1', email: email, role: 'admin' }, 
-        JWT_SECRET, 
-        { expiresIn: '1h' }
-      );
-
-      const response = NextResponse.json({
-        message: 'Login successful',
-        user: {
-          id: '1',
-          email: email,
-          firstName: 'Admin',
-          lastName: 'User',
-          role: 'admin',
-          balance: '10000.00',
-          authToken: authToken
-        }
-      }, {
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'https://project-delta-two-14.vercel.app',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          'Access-Control-Allow-Credentials': 'true',
-        }
-      });
-
-      // 세션 쿠키 설정 (크로스 오리진 지원)
-      response.cookies.set('authToken', authToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 3600, // 1시간
-        path: '/'
-      });
-
-      // 사용자 ID 쿠키 설정 (클라이언트에서 접근 가능)
-      response.cookies.set('userId', '1', {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 3600,
-        path: '/'
-      });
-
-      return response;
-
-    } else if (email === 'test@jjk.app' && password === 'Aa112211') {
-      // JWT 토큰 생성
-      const authToken = jwt.sign(
-        { userId: '2', email: email, role: 'user' }, 
-        JWT_SECRET, 
-        { expiresIn: '1h' }
-      );
-
-      const response = NextResponse.json({
-        message: 'Login successful',
-        user: {
-          id: '2',
-          email: email,
-          firstName: 'Test',
-          lastName: 'User',
-          role: 'user',
-          balance: '1000.00',
-          authToken: authToken
-        }
-      }, {
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'https://project-delta-two-14.vercel.app',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          'Access-Control-Allow-Credentials': 'true',
-        }
-      });
-
-      // 세션 쿠키 설정 (크로스 오리진 지원)
-      response.cookies.set('authToken', authToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 3600, // 1시간
-        path: '/'
-      });
-
-      // 사용자 ID 쿠키 설정 (클라이언트에서 접근 가능)
-      response.cookies.set('userId', '2', {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 3600,
-        path: '/'
-      });
-
-      return response;
-
-    } else {
-      return NextResponse.json(
-        { message: 'Invalid credentials' },
-        { 
-          status: 401,
-          headers: {
-            'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'https://project-delta-two-14.vercel.app',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Access-Control-Allow-Credentials': 'true',
-          }
-        }
-      );
+    // 입력 검증
+    if (!email || !password) {
+      return createValidationErrorResponse('이메일과 비밀번호를 입력해주세요.');
     }
+
+    // Supabase에서 사용자 찾기
+    const user: User | null = await findUserByEmail(email);
+    
+    if (!user) {
+      console.log(`❌ 사용자를 찾을 수 없음: ${email}`);
+      return createAuthErrorResponse('사용자를 찾을 수 없습니다.');
+    }
+
+    console.log(`✅ 사용자 발견: ${user.firstName} ${user.lastName}`);
+
+    // 비밀번호 확인
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    
+    if (!isPasswordValid) {
+      console.log(`❌ 비밀번호 불일치: ${email}`);
+      return createAuthErrorResponse('비밀번호가 올바르지 않습니다.');
+    }
+
+    console.log(`🎉 로그인 성공: ${email}`);
+
+    // JWT 토큰 생성
+    const authToken = generateToken(user);
+
+    const response = createSuccessResponse({
+      message: '로그인 성공',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        authToken: authToken
+      }
+    });
+
+    // 세션 쿠키 설정
+    response.cookies.set('authToken', authToken, getCookieOptions());
+
+    // 사용자 ID 쿠키 설정
+    response.cookies.set('userId', user.id, getUserIdCookieOptions());
+
+    return response;
+
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json(
-      { message: 'Internal server error during login' },
-      { 
-        status: 500,
-        headers: {
-          'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'https://project-delta-two-14.vercel.app',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          'Access-Control-Allow-Credentials': 'true',
-        }
-      }
-    );
+    return createErrorResponse('서버 오류가 발생했습니다.');
   }
 }
 
 export async function OPTIONS(_request: NextRequest) {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'https://project-delta-two-14.vercel.app',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Allow-Credentials': 'true',
-    },
-  });
+  return createOptionsResponse();
 } 

@@ -27,7 +27,24 @@ i18n
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
+      convertDetectedLanguage: (lng: string) => {
+        console.log('Detected language:', lng);
+        // ko-KR -> ko 변환
+        if (lng.startsWith('ko')) {
+          console.log('Converting ko-KR to ko');
+          return 'ko';
+        }
+        if (lng.startsWith('zh-TW')) return 'zh-TW';
+        if (lng.startsWith('zh')) return 'zh';
+        const converted = lng.split('-')[0];
+        console.log('Converted language:', converted);
+        return converted; // en-US -> en
+      }
     },
+
+    // 지원하는 언어 명시적 설정
+    supportedLngs: ['en', 'ko', 'zh', 'zh-TW', 'fr', 'de', 'es', 'it', 'ru', 'ja'],
+    nonExplicitSupportedLngs: false,
 
     // Backend configuration for loading translation files
     backend: {

@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -22,9 +23,11 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const { isAuthenticated, isLoading: authLoading, loginMutation } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, login } = useAuth();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   // Redirect if already authenticated
   React.useEffect(() => {
@@ -42,8 +45,24 @@ export default function LoginPage() {
     }
   });
 
-  const onSubmit = (data: LoginFormData) => {
-    loginMutation.mutate(data);
+  const onSubmit = async (data: LoginFormData) => {
+    setIsSubmitting(true);
+    try {
+      await login(data.email, data.password, data.rememberMe);
+      toast({
+        title: "로그인 성공",
+        description: "환영합니다!",
+      });
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast({
+        title: "로그인 실패",
+        description: error.message || "이메일 또는 비밀번호를 확인해주세요.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (authLoading) {
@@ -142,9 +161,9 @@ export default function LoginPage() {
                 <Button
                   type='submit'
                   className='w-full'
-                  disabled={loginMutation.isPending}
+                  disabled={isSubmitting}
                 >
-                  {loginMutation.isPending ? (
+                  {isSubmitting ? (
                     <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                   ) : null}
                   Sign In

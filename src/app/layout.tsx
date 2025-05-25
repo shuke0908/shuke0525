@@ -4,6 +4,9 @@ import './globals.css';
 import { validateEnvironment } from '../lib/environment';
 import { APP_INFO } from '../lib/config';
 import { Providers } from '../components/providers';
+import { ThemeProvider } from "@/lib/ThemeProvider";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -106,9 +109,19 @@ export default function RootLayout({
   return (
     <html lang='ko' suppressHydrationWarning>
       <body className={inter.className}>
-        <Providers>
-          <main className='min-h-screen bg-background'>{children}</main>
-        </Providers>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          storageKey="cryptotrader-theme"
+        >
+          <TooltipProvider>
+            <Providers>
+              <main className='min-h-screen bg-background'>{children}</main>
+            </Providers>
+            <Toaster />
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

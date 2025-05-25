@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,8 +39,10 @@ import {
   ArrowDown,
   Clock,
   TrendingUp,
+  TrendingDown,
   Zap,
   Timer,
+  Target,
 } from 'lucide-react';
 import FlashTradeResultModal from './FlashTradeResultModal';
 // 통합 API 클라이언트 사용
@@ -261,6 +265,7 @@ const FlashTradeModule = ({
   const [currentPrice, setCurrentPrice] = useState<string>(propCurrentPrice);
   const [showResultModal, setShowResultModal] = useState(false);
   const [tradeResult, setTradeResult] = useState<FlashTradeResult | null>(null);
+  const [activeTrades, setActiveTrades] = useState<ActiveFlashTrade[]>([]);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -274,8 +279,7 @@ const FlashTradeModule = ({
   const createMutation = useCreateFlashTrade();
 
   const settings = useMemo(() => settingsData?.settings || [], [settingsData?.settings]);
-  const activeTrades = activeTradesData?.activeTrades || [];
-  const timerTrades = useLocalTimer(activeTrades);
+  const timerTrades = useLocalTimer(activeTradesData?.activeTrades || []);
 
   // React Hook Form 설정
   const form = useForm<FlashTradeFormData>({
@@ -404,6 +408,55 @@ const FlashTradeModule = ({
     ? (form.watch('amount') * selectedSetting.returnRate) / 100
     : 0;
 
+  // 타이머 업데이트
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTrades(prev => 
+        prev.map(trade => {
+          if (trade.status === 'active' && Date.now() >= trade.remainingTime) {
+            // 거래 완료 - 랜덤하게 승/패 결정 (실제로는 실제 가격 비교)
+            const currentPriceNum = parseFloat(currentPrice);
+            const priceChange = (Math.random() - 0.5) * 0.02; // -1% ~ +1% 변화
+            const finalPrice = trade.entryPrice * (1 + priceChange);
+            
+            const won = (trade.direction === 'up' && finalPrice > trade.entryPrice) ||
+                        (trade.direction === 'down' && finalPrice < trade.entryPrice);
+            
+            const newStatus = won ? 'completed' : 'pending';
+            
+            // 결과 알림
+            toast({
+              title: won ? "Trade Won! 🎉" : "Trade Lost 😔",
+              description: won 
+                ? `You won $${(trade.amount * trade.returnRate / 100).toFixed(2)}!`
+                : `You lost $${trade.amount.toFixed(2)}`,
+              variant: won ? "default" : "destructive",
+            });
+            
+            return { ...trade, status: newStatus };
+          }
+          return trade;
+        })
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [currentPrice, toast]);
+
+  // 남은 시간 계산
+  const getRemainingTime = (trade: ActiveFlashTrade) => {
+    if (trade.status !== 'active') return 0;
+    return Math.max(0, trade.duration - trade.remainingTime);
+  };
+
+  // 진행률 계산
+  const getProgress = (trade: ActiveFlashTrade) => {
+    if (trade.status !== 'active') return 100;
+    const totalTime = trade.duration;
+    const elapsed = totalTime - trade.remainingTime;
+    return Math.min(100, (elapsed / totalTime) * 100);
+  };
+
   // 렌더링 유틸리티 함수들
   const renderQuickAmountButtons = () => (
     <div className='flex flex-wrap gap-2 mb-4'>
@@ -476,7 +529,7 @@ const FlashTradeModule = ({
           <div className='text-right'>
             <div className='text-sm text-muted-foreground'>Time Left</div>
             <div className='font-mono text-lg'>
-              {formatTimeRemaining(trade.remainingTime)}
+              {formatTimeRemaining(getRemainingTime(trade))}
             </div>
           </div>
         </div>

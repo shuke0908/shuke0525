@@ -14,7 +14,11 @@
     "recentActions": "Recent Actions",
     "alertsAndNotifications": "Alerts & Notifications",
     "systemStatus": "System Status",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "users": "Users",
+    "trades": "Trades",
+    "revenue": "Revenue",
+    "settings": "Settings"
   },
   "users": {
     "title": "User Management",
@@ -54,7 +58,9 @@
     "location": "Location",
     "device": "Device",
     "time": "Time",
-    "noLoginHistory": "No login history found"
+    "noLoginHistory": "No login history found",
+    "totalUsers": "Total Users",
+    "newUsers": "New Users"
   },
   "deposits": {
     "title": "Deposit Management",
@@ -323,7 +329,8 @@
     "saveSettings": "Save Settings",
     "resetDefaults": "Reset to Defaults",
     "settingsSaved": "Trading settings saved successfully",
-    "confirmReset": "Are you sure you want to reset to default settings? This will undo all your changes."
+    "confirmReset": "Are you sure you want to reset to default settings? This will undo all your changes.",
+    "wallet": "Wallet Settings"
   },
   "systemSettings": {
     "title": "System Settings",
@@ -386,5 +393,11 @@
       "updateBonus": "Update Bonus Program",
       "deleteBonus": "Delete Bonus Program"
     }
+  },
+  "trading": {
+    "title": "Trading Settings",
+    "flashTrade": "Flash Trade",
+    "quickTrade": "Quick Trade",
+    "quantAI": "Quant AI"
   }
 }

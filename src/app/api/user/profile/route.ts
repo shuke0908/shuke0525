@@ -1,118 +1,102 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
+import { supabaseAdmin } from '@/lib/supabase';
+import { getAuthenticatedUser } from '@/lib/auth';
+import { createSuccessResponse, createAuthErrorResponse, createErrorResponse } from '@/lib/api-response';
+import { createOptionsResponse } from '@/lib/cors';
 
 export async function GET(request: NextRequest) {
-  console.log('👤 User profile request via App Router');
-
   try {
-    // 쿠키에서 authToken 추출
-    const authToken = request.cookies.get('authToken')?.value;
-    
-    if (!authToken) {
-      return NextResponse.json(
-        { message: 'No authentication token found' },
-        { 
-          status: 401,
-          headers: {
-            'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'https://project-delta-two-14.vercel.app',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Access-Control-Allow-Credentials': 'true',
-          }
-        }
-      );
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // JWT 토큰 검증
-    try {
-      const decoded = jwt.verify(authToken, JWT_SECRET) as any;
-      
-      // 테스트 사용자 정보 (실제로는 데이터베이스에서 조회)
-      let userProfile;
-      if (decoded.userId === '1') {
-        userProfile = {
-          id: '1',
-          email: 'shuke0525@gmail.com',
-          firstName: 'Admin',
-          lastName: 'User',
-          role: 'admin',
-          balance: '10000.00',
-          vipLevel: 'platinum',
-          kycStatus: 'verified',
-          isTwoFactorEnabled: false
-        };
-      } else if (decoded.userId === '2') {
-        userProfile = {
-          id: '2',
-          email: 'test@jjk.app',
-          firstName: 'Test',
-          lastName: 'User',
-          role: 'user',
-          balance: '1000.00',
-          vipLevel: 'bronze',
-          kycStatus: 'pending',
-          isTwoFactorEnabled: false
-        };
-      } else {
-        return NextResponse.json(
-          { message: 'User not found' },
-          { status: 404 }
-        );
-      }
+    // Supabase에서 최신 사용자 정보 조회
+    const { data: userData, error } = await supabaseAdmin
+      .from('users')
+      .select('id, email, username, role, balance, is_active, created_at')
+      .eq('id', user.id)
+      .single();
 
-      return NextResponse.json(userProfile, {
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'https://project-delta-two-14.vercel.app',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          'Access-Control-Allow-Credentials': 'true',
-        }
-      });
-
-    } catch (jwtError) {
-      console.error('JWT verification failed:', jwtError);
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { 
-          status: 401,
-          headers: {
-            'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'https://project-delta-two-14.vercel.app',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Access-Control-Allow-Credentials': 'true',
-          }
-        }
-      );
+    if (error || !userData) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    return NextResponse.json({
+      success: true,
+      user: userData
+    });
   } catch (error) {
-    console.error('Profile API error:', error);
+    console.error('Profile fetch error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
-      { 
-        status: 500,
-        headers: {
-          'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'https://project-delta-two-14.vercel.app',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          'Access-Control-Allow-Credentials': 'true',
-        }
-      }
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { username } = await request.json();
+
+    if (!username || username.trim().length < 3) {
+      return NextResponse.json(
+        { error: 'Username must be at least 3 characters' },
+        { status: 400 }
+      );
+    }
+
+    // 사용자명 중복 확인 (자신 제외)
+    const { data: existingUser } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('username', username.trim())
+      .neq('id', user.id)
+      .single();
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'Username already exists' },
+        { status: 400 }
+      );
+    }
+
+    // 사용자명 업데이트
+    const { data: updatedUser, error } = await supabaseAdmin
+      .from('users')
+      .update({ 
+        username: username.trim(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.id)
+      .select('id, email, username, role, balance, is_active, created_at')
+      .single();
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to update profile' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
     );
   }
 }
 
 export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'https://project-delta-two-14.vercel.app',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Allow-Credentials': 'true',
-    },
-  });
+  return createOptionsResponse();
 } 
