@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-// @ts-ignore - canvas-confetti 타입 정의 없음
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 

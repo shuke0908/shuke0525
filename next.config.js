@@ -116,9 +116,9 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   
-  // ESLint 설정 - 빌드 중 비활성화
+  // ESLint 설정
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   
   // 성능 최적화
