@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateEnvironment } from './lib/environment';
 import { verifyToken, getCurrentUser, hasPermission } from './lib/auth';
 
 // 보호된 라우트 정의

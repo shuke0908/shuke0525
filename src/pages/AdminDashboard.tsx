@@ -1,17 +1,15 @@
 import React from "react";
 import { AppLayout } from "@/components/layout";
-import { useAuth } from "@/components/AuthProvider";
-import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/components/auth/AuthProvider";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
   DollarSign, 
-  TrendingUp, 
   AlertTriangle,
   ArrowUpIcon,
-  ArrowDownIcon,
   Activity,
   Shield,
   Clock

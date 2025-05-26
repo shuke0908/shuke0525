@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFlashTradeSettings } from '../../../admin/flash-trade-settings/route';
+import { getFlashTradeSettings } from '../../admin/flash-trade-settings/route';
 import { getFlashTrades, updateFlashTrade, updateUserBalance } from '../create/route';
 
 // 관리자 설정 기반 결과 결정 로직

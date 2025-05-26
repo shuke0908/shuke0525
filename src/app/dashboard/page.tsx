@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { usePriceData } from "@/hooks/usePriceData";
 import { QuickTradeModule } from "@/components/trading/QuickTradeModule";
-import FlashTradeModule from "@/components/trading/FlashTradeModule";
+import { FlashTradeModule } from "@/components/trading/FlashTradeModule";
 import { QuantAIModule } from "@/components/QuantAIModule";
 
 export default function DashboardPage() {

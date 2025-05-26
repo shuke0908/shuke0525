@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,12 +37,6 @@ import {
   // 관리자 메뉴 아이콘
   LayoutDashboardIcon,
   UsersIcon,
-  ArrowRightLeftIcon,
-  UserCheckIcon,
-  Settings2Icon,
-  BitcoinIcon,
-  MegaphoneIcon,
-  FileTextIcon,
   TimerIcon,
   BarChart3Icon,
   ArrowDownToLineIcon,

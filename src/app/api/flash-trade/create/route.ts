@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getFlashTradeSettings } from '../../../admin/flash-trade-settings/route';
+import { getFlashTradeSettings } from '../../admin/flash-trade-settings/route';
 
 // 개발 환경용 사용자 데이터 (실제로는 데이터베이스에서 조회)
 const developmentUsers = [

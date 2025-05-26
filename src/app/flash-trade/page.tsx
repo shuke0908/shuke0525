@@ -9,7 +9,7 @@ import { Clock, TrendingUp, BarChart4, CandlestickChart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import FlashTradeModule from "@/components/trading/FlashTradeModule";
+import { FlashTradeModule } from "@/components/trading/FlashTradeModule";
 
 type FlashTradeHistory = {
   id: number;

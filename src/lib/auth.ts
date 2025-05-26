@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
-import { findUserByEmail, type User } from './userStore';
+import { type User } from './userStore';
 import { supabaseAdmin } from './supabase';
 
 // 환경 변수 기본값 설정
@@ -97,6 +97,18 @@ export function generateTokenPair(user: User): AuthTokens {
     refreshToken,
     user
   };
+}
+
+/**
+ * 단일 토큰 생성 (호환성을 위한 별칭)
+ */
+export function generateToken(user: User): string {
+  const payload: JWTPayload = {
+    userId: user.id,
+    email: user.email,
+    role: user.role
+  };
+  return generateAccessToken(payload);
 }
 
 /**

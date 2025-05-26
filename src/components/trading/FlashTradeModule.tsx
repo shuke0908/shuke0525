@@ -39,10 +39,8 @@ import {
   ArrowDown,
   Clock,
   TrendingUp,
-  TrendingDown,
   Zap,
   Timer,
-  Target,
 } from 'lucide-react';
 import FlashTradeResultModal from './FlashTradeResultModal';
 // 통합 API 클라이언트 사용
@@ -786,4 +784,4 @@ const FlashTradeModule = ({
   );
 };
 
-export default FlashTradeModule;
+export { FlashTradeModule };
