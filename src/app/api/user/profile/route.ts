@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getAuthenticatedUser } from '@/lib/auth';
-import { createSuccessResponse, createAuthErrorResponse, createErrorResponse } from '@/lib/api-response';
 import { createOptionsResponse } from '@/lib/cors';
 
 export async function GET(request: NextRequest) {

@@ -3,22 +3,15 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { 
   TrendingUp, 
-  TrendingDown, 
   DollarSign, 
   BarChart3, 
   Activity, 
   Target,
-  Zap,
-  Bot,
-  ArrowUpRight,
-  ArrowDownRight,
-  Eye,
   Clock
 } from "lucide-react";
 import { usePriceData } from "@/hooks/usePriceData";
@@ -31,7 +24,7 @@ export default function DashboardPage() {
   const { prices, isConnected } = usePriceData();
 
   // Get dashboard data
-  const { data: dashboardData, isLoading } = useQuery({
+  const { data: dashboardData, isLoading: _isLoading } = useQuery({
     queryKey: ['dashboard', 'overview'],
     queryFn: async () => {
       const response = await fetch('/api/dashboard/overview');
@@ -74,7 +67,7 @@ export default function DashboardPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back! Here's your trading overview
+          Welcome back! Here&apos;s your trading overview
         </p>
         <div className="flex items-center space-x-2 mt-2">
           <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
@@ -134,7 +127,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{totalProfit}</div>
             <p className="text-xs text-muted-foreground">
-              This month's earnings
+              This month&apos;s earnings
             </p>
           </CardContent>
         </Card>

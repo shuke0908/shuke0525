@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, TrendingUp, DollarSign, Clock, Users, AlertTriangle } from 'lucide-react';
+import { Settings, TrendingUp, DollarSign, Users, AlertTriangle } from 'lucide-react';
 
 interface AdminSettings {
   id: string;
@@ -136,7 +136,7 @@ export default function FlashTradeSettingsPage() {
       if (globalSettings) {
         setFormData(globalSettings);
       }
-    }, [globalSettings]);
+    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -361,7 +361,7 @@ export default function FlashTradeSettingsPage() {
                   <Alert className="mt-4">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>강제 결과 활성화:</strong> 모든 거래가 "{globalSettings.forceResult === 'win' ? '승리' : '패배'}"로 처리됩니다.
+                      <strong>강제 결과 활성화:</strong> 모든 거래가 &ldquo;{globalSettings.forceResult === 'win' ? '승리' : '패배'}&rdquo;로 처리됩니다.
                     </AlertDescription>
                   </Alert>
                 )}

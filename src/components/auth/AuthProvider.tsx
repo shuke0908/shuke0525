@@ -8,16 +8,9 @@ import React, {
   ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  useQuery,
-  useMutation,
-  type UseMutationResult,
-} from '@tanstack/react-query';
-import { queryClient } from '../../lib/query-client';
-import { apiClient } from '../../lib/query-client';
+
+
 import { useToast } from '../../hooks/use-toast';
-import { AUTH_ROUTES, USER_ROUTES } from '../../constants/api-routes';
-import type { RegisterData } from '@/types';
 
 // User data that might be returned from login along with a token
 interface LoginResponse {
