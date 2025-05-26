@@ -18,8 +18,9 @@ import { usePriceData } from "@/hooks/usePriceData";
 import { QuickTradeModule } from "@/components/trading/QuickTradeModule";
 import { FlashTradeModule } from "@/components/trading/FlashTradeModule";
 import { QuantAIModule } from "@/components/QuantAIModule";
+import { AppLayout } from "@/components/layout";
 
-export default function DashboardPage() {
+function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const { prices, isConnected } = usePriceData();
 
@@ -63,13 +64,13 @@ export default function DashboardPage() {
   const activePositionsList = positionsData?.positions || [];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back! Here&apos;s your trading overview
-        </p>
-        <div className="flex items-center space-x-2 mt-2">
+    <AppLayout 
+      title="Dashboard" 
+      description="Welcome back! Here's your trading overview"
+      variant="user"
+    >
+      <div className="mb-6">
+        <div className="flex items-center space-x-2">
           <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
           <span className="text-sm text-muted-foreground">
             {isConnected ? 'Live Market Data' : 'Connecting...'}
@@ -293,6 +294,10 @@ export default function DashboardPage() {
           <QuantAIModule />
         </TabsContent>
       </Tabs>
-    </div>
+    </AppLayout>
   );
-} 
+}
+
+// Dynamic import로 SSR 문제 해결
+import dynamic from 'next/dynamic';
+export default dynamic(() => Promise.resolve(DashboardPage), { ssr: false }); 

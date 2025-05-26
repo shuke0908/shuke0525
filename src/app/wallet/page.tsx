@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AppLayout } from "@/components/layout";
 
 type Transaction = {
   id: string;
@@ -57,7 +58,7 @@ type DepositResponse = {
   expires_at: string;
 };
 
-export default function WalletPage() {
+function WalletPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -276,11 +277,11 @@ export default function WalletPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">💰 Wallet</h1>
-        <p className="text-muted-foreground">Manage your deposits, withdrawals, and account balance</p>
-      </div>
+    <AppLayout 
+      title="💰 Wallet" 
+      description="Manage your deposits, withdrawals, and account balance"
+      variant="user"
+    >
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
@@ -731,6 +732,10 @@ export default function WalletPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </AppLayout>
   );
-} 
+}
+
+// Dynamic import로 SSR 문제 해결
+import dynamic from 'next/dynamic';
+export default dynamic(() => Promise.resolve(WalletPage), { ssr: false }); 

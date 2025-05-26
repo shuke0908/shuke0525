@@ -24,6 +24,7 @@ import {
   RefreshCw,
   Ban
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout';
 
 type FlashTrade = {
   id: string;
@@ -60,7 +61,7 @@ type AdminAction = {
   newAmount?: number;
 };
 
-export default function FlashTradeControlPage() {
+function FlashTradeControlPage() {
   const [selectedTrade, setSelectedTrade] = useState<FlashTrade | null>(null);
   const [actionType, setActionType] = useState<AdminAction['action']>('force_result');
   const [actionReason, setActionReason] = useState('');
@@ -169,15 +170,13 @@ export default function FlashTradeControlPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">FlashTrade 실시간 제어</h1>
-            <p className="text-muted-foreground">
-              실시간으로 FlashTrade를 모니터링하고 관리자 권한으로 제어합니다
-            </p>
-          </div>
+    <AppLayout 
+      title="FlashTrade 실시간 제어" 
+      description="실시간으로 FlashTrade를 모니터링하고 관리자 권한으로 제어합니다"
+      variant="admin"
+    >
+      <div className="mb-6">
+        <div className="flex items-center justify-end">
           <Button onClick={() => refetch()} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             새로고침
@@ -498,6 +497,10 @@ export default function FlashTradeControlPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AppLayout>
   );
-} 
+}
+
+// Dynamic import로 SSR 문제 해결
+import dynamic from 'next/dynamic';
+export default dynamic(() => Promise.resolve(FlashTradeControlPage), { ssr: false }); 

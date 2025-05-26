@@ -82,7 +82,7 @@ function getAuthTokenFromCookie(): string | null {
 
 // 쿠키에 인증 토큰 설정
 function setAuthTokenCookie(token: string, persistent: boolean = false) {
-  if (typeof document !== 'undefined') {
+  if (typeof document !== 'undefined' && typeof window !== 'undefined') {
     const maxAge = persistent ? 30 * 24 * 60 * 60 : 24 * 60 * 60; // 30일 또는 1일
     const secure = window.location.protocol === 'https:';
     document.cookie = `auth_token=${token}; max-age=${maxAge}; path=/; ${secure ? 'secure;' : ''} samesite=lax`;

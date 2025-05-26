@@ -11,7 +11,7 @@ interface AppLayoutProps {
   title?: string;
   description?: string;
   showHeader?: boolean;
-  sidebarVariant?: "user" | "admin";
+  variant?: "user" | "admin";
   className?: string;
 }
 
@@ -27,7 +27,7 @@ export function AppLayout({
   title, 
   description, 
   showHeader = true,
-  sidebarVariant = "user",
+  variant = "user",
   className 
 }: AppLayoutProps) {
   const { user } = useAuth();
@@ -46,14 +46,14 @@ export function AppLayout({
         {/* 데스크톱/태블릿 사이드바 - 768px 이상에서 표시 */}
         <div className="hidden md:flex">
           <Sidebar 
-            variant={sidebarVariant}
+            variant={variant}
             className="w-64 h-screen sticky top-0"
           />
         </div>
         
         {/* 모바일 사이드바 - 768px 미만에서 오버레이로 표시 */}
         <MobileSidebar
-          variant={sidebarVariant}
+          variant={variant}
           isOpen={isMobileSidebarOpen}
           onClose={() => setIsMobileSidebarOpen(false)}
         />
@@ -64,7 +64,7 @@ export function AppLayout({
           {showHeader && (
             <Header 
               onMobileMenuToggle={() => setIsMobileSidebarOpen(true)}
-              variant={sidebarVariant}
+              variant={variant}
               className="sticky top-0 z-40"
             />
           )}

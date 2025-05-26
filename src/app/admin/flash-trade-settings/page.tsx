@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Settings, TrendingUp, DollarSign, Users, AlertTriangle } from 'lucide-react';
+import { AppLayout } from '@/components/layout';
 
 interface AdminSettings {
   id: string;
@@ -284,16 +285,11 @@ export default function FlashTradeSettingsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center">
-          <Settings className="mr-3" />
-          FlashTrade 설정 관리
-        </h1>
-        <p className="text-muted-foreground">
-          FlashTrade 가상 거래 시스템의 승률, 수익률 등을 관리합니다.
-        </p>
-      </div>
+    <AppLayout 
+      title="FlashTrade 설정 관리" 
+      description="FlashTrade 가상 거래 시스템의 승률, 수익률 등을 관리합니다"
+      variant="admin"
+    >
 
       {error && (
         <Alert variant="destructive" className="mb-6">
@@ -416,6 +412,6 @@ export default function FlashTradeSettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </AppLayout>
   );
 } 

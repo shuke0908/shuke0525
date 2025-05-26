@@ -7,6 +7,7 @@ import { RealtimeActivity } from '@/components/admin/RealtimeActivity';
 import { useSimpleWebSocket } from '@/hooks/useSimpleWebSocket';
 import { Badge } from '@/components/ui/badge';
 import { Wifi, WifiOff } from 'lucide-react';
+import { AppLayout } from '@/components/layout';
 
 interface User {
   id: string;
@@ -24,7 +25,7 @@ interface User {
   };
 }
 
-export default function AdminDashboard() {
+function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
@@ -56,16 +57,13 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">관리자 대시보드</h1>
-            <p className="text-muted-foreground">
-              사용자 거래 설정을 관리하고 플랫폼을 제어하세요.
-            </p>
-          </div>
-          
+    <AppLayout 
+      title="관리자 대시보드" 
+      description="사용자 거래 설정을 관리하고 플랫폼을 제어하세요"
+      variant="admin"
+    >
+      <div className="mb-6">
+        <div className="flex items-center justify-end">
           {/* WebSocket 연결 상태 */}
           <div className="flex items-center gap-2">
             {isConnected ? (
@@ -124,6 +122,10 @@ export default function AdminDashboard() {
           <RealtimeActivity activities={recentActivity} />
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
-} 
+}
+
+// Dynamic import로 SSR 문제 해결
+import dynamic from 'next/dynamic';
+export default dynamic(() => Promise.resolve(AdminDashboard), { ssr: false }); 
