@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase-server';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabase = createServerSupabaseClient();
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,69 +11,78 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 최근 거래 내역 (실제로는 데이터베이스에서 조회)
-    const trades = [
-      {
-        id: '1',
-        asset: 'BTC/USD',
-        type: 'buy',
-        amount: '500.00',
-        price: '43,250.50',
-        pnl: 125.75,
-        status: 'completed',
-        timestamp: new Date(Date.now() - 300000).toISOString(), // 5분 전
-        leverage: 1,
-        fees: 2.50
-      },
-      {
-        id: '2',
-        asset: 'ETH/USD',
-        type: 'sell',
-        amount: '1000.00',
-        price: '2,650.75',
-        pnl: -45.20,
-        status: 'completed',
-        timestamp: new Date(Date.now() - 900000).toISOString(), // 15분 전
-        leverage: 2,
-        fees: 5.00
-      },
-      {
-        id: '3',
-        asset: 'XRP/USD',
-        type: 'buy',
-        amount: '200.00',
-        price: '0.62',
-        pnl: 8.45,
-        status: 'completed',
-        timestamp: new Date(Date.now() - 1800000).toISOString(), // 30분 전
-        leverage: 1,
-        fees: 1.00
-      },
-      {
-        id: '4',
-        asset: 'BNB/USD',
-        type: 'sell',
-        amount: '300.00',
-        price: '315.80',
-        pnl: 67.30,
-        status: 'completed',
-        timestamp: new Date(Date.now() - 3600000).toISOString(), // 1시간 전
-        leverage: 3,
-        fees: 4.50
-      },
-      {
-        id: '5',
-        asset: 'BTC/USD',
-        type: 'buy',
-        amount: '750.00',
-        price: '43,100.25',
-        pnl: 89.15,
-        status: 'completed',
-        timestamp: new Date(Date.now() - 7200000).toISOString(), // 2시간 전
-        leverage: 1,
-        fees: 3.75
-      }
-    ];
+    // JWT 토큰에서 사용자 ID 추출
+    const token = authHeader.replace('Bearer ', '');
+    let userId;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userId = payload.userId;
+    } catch {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    // 실제 데이터베이스에서 최근 거래 내역 조회
+    const { data: flashTrades, error: flashError } = await supabase
+      .from('flash_trades')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    const { data: quickTrades, error: quickError } = await supabase
+      .from('quick_trade_positions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'closed')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    // 거래 내역 통합 및 포맷팅
+    const allTrades = [];
+    
+    // Flash Trade 데이터 변환
+    if (flashTrades) {
+      flashTrades.forEach(trade => {
+        allTrades.push({
+          id: trade.id,
+          asset: 'BTC/USD', // Flash Trade는 기본적으로 BTC
+          type: trade.direction === 'up' ? 'buy' : 'sell',
+          amount: trade.amount,
+          price: trade.start_price,
+          pnl: parseFloat(trade.profit) || 0,
+          status: 'completed',
+          timestamp: trade.created_at,
+          leverage: 1,
+          fees: 0,
+          tradeType: 'flash'
+        });
+      });
+    }
+
+    // Quick Trade 데이터 변환
+    if (quickTrades) {
+      quickTrades.forEach(trade => {
+        allTrades.push({
+          id: trade.id,
+          asset: trade.symbol,
+          type: trade.side,
+          amount: trade.amount,
+          price: trade.entry_price,
+          pnl: parseFloat(trade.pnl) || 0,
+          status: 'completed',
+          timestamp: trade.created_at,
+          leverage: trade.leverage,
+          fees: 0,
+          tradeType: 'quick'
+        });
+      });
+    }
+
+    // 시간순 정렬
+    const trades = allTrades
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 5);
 
     return NextResponse.json({
       success: true,

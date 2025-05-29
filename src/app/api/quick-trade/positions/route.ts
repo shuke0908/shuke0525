@@ -1,55 +1,81 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { verifyJWT } from '@/lib/auth';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabase = createServerSupabaseClient();
 
 export async function GET(request: NextRequest) {
   try {
-    // JWT 토큰에서 사용자 ID 추출 (실제 구현에서는 JWT 검증 필요)
+    // JWT 토큰 검증
     const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 사용자의 포지션 목록 (실제로는 데이터베이스에서 조회)
-    const positions = [
-      {
-        id: '1',
-        asset: 'BTC/USD',
-        direction: 'long',
-        amount: 100,
-        leverage: 10,
-        entryPrice: 43000.00,
-        currentPrice: 43250.50,
-        pnl: 25.05,
-        pnlPercentage: 2.45,
-        status: 'open',
-        createdAt: new Date(Date.now() - 3600000).toISOString() // 1시간 전
-      },
-      {
-        id: '2',
-        asset: 'ETH/USD',
-        direction: 'short',
-        amount: 50,
-        leverage: 5,
-        entryPrice: 2700.00,
-        currentPrice: 2650.75,
-        pnl: 12.31,
-        pnlPercentage: 1.83,
-        status: 'open',
-        createdAt: new Date(Date.now() - 7200000).toISOString() // 2시간 전
-      }
-    ];
+    const token = authHeader.substring(7);
+    const payload = await verifyJWT(token);
+    if (!payload) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    const userId = payload.userId;
+
+    // 실제 데이터베이스에서 포지션 조회
+    const { data: positions, error } = await supabase
+      .from('quick_trade_positions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'open')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Database error:', error);
+      return NextResponse.json({ error: 'Failed to fetch positions' }, { status: 500 });
+    }
+
+    // 포지션 데이터 포맷팅
+    const formattedPositions = (positions || []).map(pos => {
+      const currentPrice = parseFloat(pos.entry_price) * (1 + (Math.random() - 0.5) * 0.05); // 시뮬레이션 현재가
+      const pnl = parseFloat(pos.pnl) || 0;
+      const pnlPercentage = parseFloat(pos.amount) > 0 ? (pnl / parseFloat(pos.amount)) * 100 : 0;
+      
+      return {
+        id: pos.id,
+        symbol: pos.symbol,
+        amount: pos.amount,
+        direction: pos.side,
+        leverage: pos.leverage,
+        entryPrice: pos.entry_price,
+        currentPrice: currentPrice.toFixed(2),
+        positionSize: (parseFloat(pos.amount) * pos.leverage).toFixed(2),
+        pnl: pnl >= 0 ? `+${pnl.toFixed(2)}` : pnl.toFixed(2),
+        pnlPercentage: pnlPercentage >= 0 ? `+${pnlPercentage.toFixed(2)}` : pnlPercentage.toFixed(2),
+        margin: pos.amount,
+        status: pos.status,
+        createdAt: pos.created_at
+      };
+    });
+
+    // 총 PnL 계산
+    const totalPnl = formattedPositions.reduce((sum, pos) => {
+      const pnl = parseFloat(pos.pnl.replace('+', '').replace('-', ''));
+      return sum + (pos.pnl.startsWith('-') ? -pnl : pnl);
+    }, 0);
 
     return NextResponse.json({
       success: true,
-      positions
+      data: {
+        positions: formattedPositions,
+        summary: {
+          totalPositions: formattedPositions.length,
+          totalPnl: totalPnl.toFixed(2),
+          totalMargin: formattedPositions.reduce((sum, pos) => sum + parseFloat(pos.margin), 0).toFixed(2)
+        }
+      }
     });
+
   } catch (error) {
-    console.error('Positions fetch error:', error);
+    console.error('Quick trade positions API error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch positions' },
       { status: 500 }

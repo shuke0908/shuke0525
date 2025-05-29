@@ -5,7 +5,7 @@ export interface User {
   firstName: string | null;
   lastName: string | null;
   profileImageUrl: string | null;
-  role: 'user' | 'admin' | 'superadmin';
+  role: "user" | "admin" | "superadmin";
   isActive: boolean;
   balance: string;
   createdAt: string;
@@ -22,7 +22,7 @@ export interface KycDocument {
   frontImageUrl: string;
   backImageUrl: string | null;
   selfieImageUrl: string | null;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   rejectionReason: string | null;
   createdAt: string;
   updatedAt: string;
@@ -43,7 +43,7 @@ export interface Deposit {
   transactionHash: string | null;
   paymentMethod: string;
   proofImageUrl: string | null;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   reason: string | null;
   createdAt: string;
   updatedAt: string;
@@ -57,7 +57,7 @@ export interface Withdrawal {
   amount: string;
   coin: string;
   destinationAddress: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   reason: string | null;
   createdAt: string;
   updatedAt: string;
@@ -97,9 +97,9 @@ export interface BonusProgram {
   id: string;
   name: string;
   description: string | null;
-  bonusType: 'first_deposit' | 'referral' | 'special_promotion' | 'loyalty';
+  bonusType: "first_deposit" | "referral" | "special_promotion" | "loyalty";
   bonusAmount: string;
-  bonusUnit: 'percent' | 'fixed';
+  bonusUnit: "percent" | "fixed";
   conditions: BonusCondition[];
   isActive: boolean;
   createdAt: string;
@@ -107,7 +107,7 @@ export interface BonusProgram {
 }
 
 export interface BonusCondition {
-  type: 'deposit_amount' | 'trading_volume' | 'time_period';
+  type: "deposit_amount" | "trading_volume" | "time_period";
   value: string | number;
 }
 
@@ -119,10 +119,10 @@ export interface UserBonus {
   programName: string;
   amount: string;
   originalBonusAmount: string;
-  bonusUnit: 'percent' | 'fixed';
+  bonusUnit: "percent" | "fixed";
   requiredVolume: string;
   currentVolume: string;
-  status: 'pending' | 'active' | 'completed' | 'expired' | 'cancelled';
+  status: "pending" | "active" | "completed" | "expired" | "cancelled";
   expiryDate: string;
   createdAt: string;
   updatedAt: string;
@@ -144,7 +144,7 @@ export interface LoginHistory {
   ipAddress: string;
   device: string | null;
   location: string | null;
-  status: 'success' | 'failed';
+  status: "success" | "failed";
   reason: string | null;
   timestamp: string;
 }
@@ -166,11 +166,11 @@ export interface Coin {
 export interface Transaction {
   id: number;
   userId: string;
-  type: 'deposit' | 'withdrawal' | 'trade' | 'bonus' | 'system';
+  type: "deposit" | "withdrawal" | "trade" | "bonus" | "system";
   amount: string;
   balance: string;
   description: string;
-  status: 'pending' | 'completed' | 'failed';
+  status: "pending" | "completed" | "failed";
   reference: string | null;
   createdAt: string;
   updatedAt: string;

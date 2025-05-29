@@ -1,123 +1,110 @@
+'use client';
+
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { ArrowDownRight, ArrowUpRight, Clock } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Clock, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 
-type Transaction = {
-  id: number;
-  type: string;
-  amount: string;
-  status: string;
-  timestamp: string;
-  details: string;
-};
+interface RecentTransactionsProps {
+  className?: string;
+}
 
-export default function RecentTransactions() {
-  const { user } = useAuth();
+export function RecentTransactions({ className }: RecentTransactionsProps) {
+  const mockTransactions = [
+    {
+      id: '1',
+      type: 'buy',
+      symbol: 'BTC/USD',
+      amount: 0.025,
+      price: 41250,
+      total: 1031.25,
+      status: 'completed',
+      timestamp: '2024-01-15 14:30'
+    },
+    {
+      id: '2',
+      type: 'sell',
+      symbol: 'ETH/USD',
+      amount: 2.5,
+      price: 2650,
+      total: 6625,
+      status: 'completed',
+      timestamp: '2024-01-15 13:15'
+    },
+    {
+      id: '3',
+      type: 'buy',
+      symbol: 'XRP/USD',
+      amount: 1000,
+      price: 0.62,
+      total: 620,
+      status: 'pending',
+      timestamp: '2024-01-15 12:45'
+    }
+  ];
 
-  // Get transactions for dashboard
-  const { data: transactionsData, isLoading } = useQuery({
-    queryKey: ['/api/transactions', 5],
-    enabled: !!user,
-  });
-
-  // Example placeholder data
-  const transactions: Transaction[] = (transactionsData as any)?.transactions || [];
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge variant="default" className="bg-green-100 text-green-800">완료</Badge>;
+      case 'pending':
+        return <Badge variant="secondary">대기중</Badge>;
+      case 'failed':
+        return <Badge variant="destructive">실패</Badge>;
+      default:
+        return <Badge variant="outline">알 수 없음</Badge>;
+    }
   };
 
   return (
-    <Card>
-      <CardHeader className='pb-2'>
-        <CardTitle className='text-md'>Recent Transactions</CardTitle>
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Clock className="h-5 w-5 mr-2" />
+          Recent Transactions
+        </CardTitle>
+        <CardDescription>
+          Your latest trading activity
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className='space-y-3'>
-            {Array(5)
-              .fill(0)
-              .map((_, i) => (
-                <Skeleton key={i} className='h-12 w-full' />
-              ))}
-          </div>
-        ) : transactions.length > 0 ? (
-          <div className='space-y-3'>
-            {transactions.map(transaction => (
-              <div key={transaction.id} className='flex items-center gap-4'>
-                <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                    transaction.type === 'deposit'
-                      ? 'bg-green-100 text-green-600'
-                      : transaction.type === 'withdrawal'
-                        ? 'bg-red-100 text-red-600'
-                        : transaction.type === 'trade'
-                          ? 'bg-blue-100 text-blue-600'
-                          : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {transaction.type === 'deposit' ? (
-                    <ArrowDownRight className='h-5 w-5' />
-                  ) : transaction.type === 'withdrawal' ? (
-                    <ArrowUpRight className='h-5 w-5' />
+        <div className="space-y-4">
+          {mockTransactions.map((transaction) => (
+            <div key={transaction.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded-full ${
+                  transaction.type === 'buy' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                }`}>
+                  {transaction.type === 'buy' ? (
+                    <ArrowDownLeft className="h-3 w-3" />
                   ) : (
-                    <Clock className='h-5 w-5' />
+                    <ArrowUpRight className="h-3 w-3" />
                   )}
                 </div>
-
-                <div className='flex-1 min-w-0'>
-                  <p className='text-sm font-medium truncate'>
-                    {transaction.type.charAt(0).toUpperCase() +
-                      transaction.type.slice(1)}
-                  </p>
-                  <p className='text-xs text-muted-foreground'>
-                    {formatDate(transaction.timestamp)}
-                  </p>
-                </div>
-
-                <div className='text-right'>
-                  <p
-                    className={`text-sm font-medium ${
-                      transaction.type === 'deposit'
-                        ? 'text-green-600'
-                        : transaction.type === 'withdrawal'
-                          ? 'text-red-600'
-                          : ''
-                    }`}
-                  >
-                    {transaction.type === 'deposit'
-                      ? '+'
-                      : transaction.type === 'withdrawal'
-                        ? '-'
-                        : ''}
-                    ${parseFloat(transaction.amount).toFixed(2)}
-                  </p>
-                  <p className='text-xs text-muted-foreground'>
-                    {transaction.status}
+                <div>
+                  <p className="font-medium">{transaction.symbol}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {transaction.amount} @ ${transaction.price}
                   </p>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className='text-center py-6'>
-            <Clock className='mx-auto h-8 w-8 text-muted-foreground mb-2' />
-            <h3 className='text-sm font-medium'>No transactions yet</h3>
-            <p className='text-xs text-muted-foreground mt-1'>
-              Your recent transactions will appear here
-            </p>
-          </div>
-        )}
+              <div className="text-right">
+                <p className="font-medium">${transaction.total}</p>
+                <div className="flex items-center space-x-2">
+                  {getStatusBadge(transaction.status)}
+                  <span className="text-xs text-muted-foreground">
+                    {transaction.timestamp.split(' ')[1]}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          <Button variant="outline" className="w-full">
+            View All Transactions
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

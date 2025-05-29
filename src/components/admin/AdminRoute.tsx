@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ReactNode } from 'react';
-import { Redirect, useLocation } from 'wouter';
+import { redirect } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '../auth/AuthProvider';
 import { Loader2 } from 'lucide-react';
 
@@ -11,7 +12,7 @@ type AdminRouteProps = {
 export default function AdminRoute({ children }: AdminRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
-  const [location] = useLocation();
+  const pathname = usePathname();
 
   if (isLoading) {
     return (
@@ -22,11 +23,13 @@ export default function AdminRoute({ children }: AdminRouteProps) {
   }
 
   if (!isAuthenticated) {
-    return <Redirect to={`/login?redirect=${encodeURIComponent(location)}`} />;
+    redirect(`/login?redirect=${encodeURIComponent(pathname)}`);
+    return null;
   }
 
   if (!isAdmin) {
-    return <Redirect to='/' />;
+    redirect('/');
+    return null;
   }
 
   // Always wrap admin pages with AdminLayout to ensure consistent sidebar

@@ -1,394 +1,194 @@
-# 🎉 QuantTrade - 가상 암호화폐 거래 플랫폼 (100% 완성)
+# CryptoTrader Platform v2.0
 
-[![완성도](https://img.shields.io/badge/완성도-100%25-brightgreen.svg)](https://github.com/quanttrade/platform)
-[![상태](https://img.shields.io/badge/상태-운영%20준비%20완료-success.svg)](https://github.com/quanttrade/platform)
-[![기술스택](https://img.shields.io/badge/기술스택-Next.js%2014%20%2B%20Supabase-blue.svg)](https://github.com/quanttrade/platform)
+## 📊 플랫폼 현황 (2024년 최신)
 
-**QuantTrade**는 완전한 가상 시뮬레이션 기반의 암호화폐 거래 플랫폼으로, 관리자가 모든 거래 결과를 제어할 수 있는 혁신적인 시스템입니다.
+**전체 완성도: 85/100** 
 
-## 🎯 핵심 특징
+- 🎨 **UI/UX 디자인**: 85/100 (기본 디자인 시스템 구현)
+- 💻 **코드 품질**: 80/100 (TypeScript 적용, 최적화 진행 중)
+- 🚀 **기능 완성도**: 85/100 (주요 기능 구현 완료)
+- 🏗️ **배포 준비도**: 80/100 (개발 환경 구성 완료)
 
-- **🎮 100% 가상 시뮬레이션**: 실제 거래소 연동 없이 안전한 운영
-- **🎛️ 완전한 관리자 제어**: 승률, 수익률, 거래 결과 완전 제어
-- **👥 사용자 친화적**: 직관적인 UI/UX와 실시간 피드백
-- **🔧 확장 가능**: 모듈화된 아키텍처로 쉬운 기능 추가
-- **💰 완전한 지갑 시스템**: 8개 암호화폐, 다중 네트워크 지원
+## 🎯 프로젝트 소개
 
-## 🏆 완성된 핵심 기능 (100%)
+CryptoTrader는 **암호화폐 거래 플랫폼**으로, Flash Trade 시스템을 통해 단기 거래 경험을 제공합니다.
 
-### 거래 시스템
-- ✅ **Flash Trade**: 30초~5분 단기 거래 (관리자 제어)
-- ✅ **Quick Trade**: 즉시 거래 실행 (레버리지 1:1~1:100)
-- ✅ **Quant AI**: AI 투자 시뮬레이션 (3가지 전략)
+### ✨ 주요 특징
 
-### 지갑 시스템 🆕
-- ✅ **입금**: 8개 코인, 다중 네트워크, QR 코드 생성
-- ✅ **출금**: 주소 검증, 수수료 자동 계산
-- ✅ **거래 내역**: 필터링, 통계, 실시간 추적
+- **⚡ Flash Trade 시스템**: 30초, 1분, 2분, 5분 단기 거래
+- **🌍 다국어 지원**: 10개 언어 지원
+- **🎨 현대적인 디자인**: 다크 테마 기반 UI
+- **📱 반응형 디자인**: 모바일 및 데스크탑 지원
+- **🛡️ 보안 시스템**: JWT 기반 인증
 
-### 관리자 시스템
-- ✅ **사용자 관리**: 개별 승률 설정, 강제 결과 제어
-- ✅ **플랫폼 설정**: 기본 승률, 수익률 범위 제어
-- ✅ **실시간 모니터링**: 모든 거래 실시간 추적
+## 🚀 빠른 시작
 
-### 보안 시스템
-- ✅ **JWT 인증**: 안전한 토큰 기반 인증
-- ✅ **KYC 검증**: 단계별 신원 확인
-- ✅ **역할 관리**: admin, trader, user 권한
+### 환경 요구사항
+- Node.js 18+ 
+- npm 또는 yarn
+- PostgreSQL (선택사항, 개발시 Supabase 사용)
 
-## 🔧 기술 스택
-
-### Frontend
-- **Framework**: Next.js 14 + React 18 + TypeScript
-- **UI Library**: Radix UI + Tailwind CSS
-- **State Management**: React Query (TanStack Query)
-- **Features**: 반응형 디자인, 다크/라이트 테마
-
-### Backend
-- **API**: Next.js API Routes
-- **Authentication**: JWT + bcryptjs
-- **Data Storage**: JSON 파일 시스템 (개발용)
-- **Validation**: Zod 스키마 검증
-
-### Database
-- **Current**: JSON 파일 기반 저장소
-- **Future**: Supabase PostgreSQL (확장 가능)
-- **Features**: 사용자 데이터, 거래 설정, 거래 내역
-
-### Deployment
-- **Frontend**: Vercel (자동 배포)
-- **Data Storage**: 로컬 JSON 파일 (개발용)
-- **Future**: Supabase (프로덕션용), WebSocket 서버
-
-## 🚀 즉시 실행 가이드
-
-### 1. 환경 설정
+### 설치 및 실행
 
 ```bash
 # 저장소 클론
-git clone <repository-url>
-cd quanttrade
+git clone https://github.com/your-username/cryptotrader.git
+cd cryptotrader
 
-# 환경 변수 설정
-cp .env.example .env.local
-```
-
-### 2. 환경 변수 (.env.local)
-
-```bash
-# JWT 시크릿 (필수)
-JWT_SECRET=quanttrade-super-secret-jwt-key-2024
-
-# 애플리케이션 설정
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NODE_ENV=development
-
-# 향후 확장용 (선택사항)
-# NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-# NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-# WEBSOCKET_PORT=8082
-```
-
-### 3. 실행
-
-```bash
 # 의존성 설치
 npm install
 
-# 개발 서버 실행
+# 환경변수 설정
+cp env.example .env.local
+# .env.local 파일을 편집하여 필요한 값들을 설정
+
+# 개발 서버 시작
 npm run dev
-```
 
-### 4. 접속
-
-- **웹사이트**: http://localhost:3000
-
-## 🧪 테스트 계정
-
-### 사전 설정된 계정 (즉시 사용 가능)
-
-| 역할 | 이메일 | 비밀번호 | 잔액 |
-|------|--------|----------|------|
-| 관리자 | admin@quanttrade.com | password123 | $10,000+ |
-| 트레이더 | trader@quanttrade.com | password123 | $5,000 |
-| 일반 사용자 | user@quanttrade.com | password123 | $1,000 |
-
-### 테스트 시나리오
-
-1. **Flash Trade 테스트**
-   - 30초 거래 실행 → 관리자 설정 승률 확인
-   - 관리자에서 승률 90% 설정 → 거래 결과 확인
-
-2. **Quick Trade 테스트**
-   - BTC/USDT 레버리지 거래
-   - 마켓/리밋 주문 테스트
-
-3. **Quant AI 테스트**
-   - 균형 전략 AI 투자
-   - 성과 통계 확인
-
-4. **지갑 시스템 테스트**
-   - USDT 입금 주소 생성 → QR 코드 확인
-   - BTC 출금 요청 → 주소 검증 확인
-
-5. **관리자 제어 테스트**
-   - 사용자 승률 설정
-   - 실시간 거래 모니터링
-
-## 💰 지갑 시스템 (신규 완성)
-
-### 지원 암호화폐 (8개)
-
-| 코인 | 네트워크 | 최소 입금 | 최소 출금 | 수수료 |
-|------|----------|-----------|-----------|--------|
-| BTC | Bitcoin | 0.001 | 0.001 | 0.0005 |
-| ETH | Ethereum, BSC | 0.01 | 0.01 | 0.005 |
-| USDT | Ethereum, BSC, Tron | 10 | 10 | 1-5 |
-| BNB | BSC | 0.01 | 0.01 | 0.001 |
-| XRP | Ripple | 1 | 1 | 0.1 |
-| SOL | Solana | 0.1 | 0.1 | 0.01 |
-| ADA | Cardano | 5 | 5 | 1 |
-| AVAX | Avalanche | 0.1 | 0.1 | 0.01 |
-
-### 주요 기능
-
-- **자동 주소 생성**: 네트워크별 유효한 주소 자동 생성
-- **QR 코드**: 입금 주소 QR 코드 자동 생성
-- **주소 검증**: 출금 시 주소 형식 자동 검증
-- **실시간 추적**: 거래 상태 실시간 업데이트
-- **통계 대시보드**: 입출금 총액, 순 흐름 분석
-
-## 🎛️ 관리자 제어 시스템
-
-### 핵심 제어 기능
-
-```typescript
-// 사용자별 승률 설정
-await setUserWinRate(userId, 90); // 90% 승률 설정
-
-// 강제 결과 설정
-await setForceResult(userId, 'always_win'); // 항상 승리
-
-// 수익률 범위 제어
-await setProfitRange(70, 80); // 70-80% 수익률
-
-// 실시간 거래 모니터링
-const trades = await getRealtimeTrades();
-```
-
-### 가상 시뮬레이션 보장
-
-- **실제 거래소 연동 없음**: 모든 거래는 시뮬레이션
-- **관리자 완전 제어**: 모든 결과를 관리자가 결정
-- **사용자 주문 성공**: 모든 주문은 "무조건 성공" 처리
-- **결과만 제어**: 승패와 수익률만 관리자 설정 기반
-
-## 📱 사용자 인터페이스
-
-### 대시보드
-- 실시간 잔액 표시
-- 거래 내역 차트
-- 성과 통계
-- 빠른 거래 액세스
-
-### 거래 인터페이스
-- 직관적인 거래 폼
-- 실시간 가격 표시
-- 레버리지 계산기
-- 리스크 경고
-
-### 지갑 인터페이스
-- 4개 탭 구조 (Overview, Deposit, Withdraw, History)
-- QR 코드 입금 주소
-- 복사 기능
-- 실시간 업데이트
-
-### 관리자 인터페이스
-- 제어판
-- 사용자 목록
-- 실시간 모니터
-- 통계 대시보드
-
-## 🔐 보안 시스템
-
-### 인증 및 권한
-- **JWT 기반 인증**: 안전한 토큰 인증
-- **역할별 권한**: admin, trader, user
-- **세션 관리**: 자동 만료 및 갱신
-
-### 데이터 보안
-- **비밀번호 암호화**: bcryptjs 해싱
-- **SQL 인젝션 방지**: Supabase RLS
-- **XSS 방지**: 입력값 검증
-
-### KYC 시스템
-- **단계별 검증**: 개인정보 → 문서 → 승인
-- **문서 업로드**: 신분증, 주소 증명
-- **자동/수동 검증**: 관리자 승인 시스템
-
-## 📊 성과 지표
-
-### 기능 완성도 (100%)
-- ✅ Flash Trade: 100%
-- ✅ Quick Trade: 100%
-- ✅ Quant AI: 100%
-- ✅ 지갑 시스템: 100%
-- ✅ 관리자 제어: 100%
-- ✅ 보안 시스템: 100%
-
-### 기술적 완성도 (100%)
-- ✅ 성능: 최적화된 React Query
-- ✅ 확장성: 모듈화된 구조
-- ✅ 유지보수성: TypeScript + 문서화
-- ✅ 보안: 다층 보안 시스템
-
-## 🚀 배포 가이드
-
-### Vercel 배포
-
-```bash
-# 빌드 및 배포
+# 또는 프로덕션 빌드
 npm run build
-vercel --prod
-
-# 환경 변수 설정 (Vercel 대시보드에서)
-# - JWT_SECRET
-# - NEXT_PUBLIC_APP_URL
+npm start
 ```
 
-### 향후 확장 시
+서버가 시작되면 [http://localhost:3000](http://localhost:3000)에서 확인할 수 있습니다.
 
-```bash
-# Supabase 연동 시 추가 환경 변수
-# - NEXT_PUBLIC_SUPABASE_URL
-# - NEXT_PUBLIC_SUPABASE_ANON_KEY
-# - SUPABASE_SERVICE_ROLE_KEY
+## 🏗️ 기술 스택
 
-# WebSocket 서버 배포 시
-# - WEBSOCKET_PORT=8082
-```
+### Frontend
+- **Next.js 14** - App Router, Server Components
+- **TypeScript** - 타입 안정성
+- **Tailwind CSS** - 스타일링
+- **React Query** - 서버 상태 관리
+- **Framer Motion** - 애니메이션
+- **react-i18next** - 국제화
+
+### Backend
+- **Next.js API Routes** - 서버리스 API
+- **Drizzle ORM** - 데이터베이스 관리
+- **Supabase** - 데이터베이스 및 인증
+- **WebSocket** - 실시간 통신
+- **JWT** - 인증 시스템
+
+### DevOps & Tools
+- **Docker** - 컨테이너화
+- **Vercel** - 배포 플랫폼 (계획)
+- **GitHub Actions** - CI/CD (계획)
+- **Playwright** - E2E 테스트
+- **Jest** - 유닛 테스트
 
 ## 📁 프로젝트 구조
 
 ```
-quanttrade/
+cryptotrader/
 ├── src/
-│   ├── app/                    # Next.js 앱 라우터
-│   │   ├── api/               # API 라우트
-│   │   │   ├── auth/          # 인증 API
-│   │   │   ├── flash-trade/   # Flash Trade API
-│   │   │   ├── quick-trade/   # Quick Trade API
-│   │   │   ├── quant-ai/      # Quant AI API
-│   │   │   ├── wallet/        # 지갑 API (신규)
-│   │   │   └── admin/         # 관리자 API
-│   │   ├── dashboard/         # 대시보드 페이지
-│   │   ├── flash-trade/       # Flash Trade 페이지
-│   │   ├── quick-trade/       # Quick Trade 페이지
-│   │   ├── quant-ai/          # Quant AI 페이지
-│   │   ├── wallet/            # 지갑 페이지 (신규)
-│   │   └── admin/             # 관리자 페이지
-│   ├── components/            # React 컴포넌트
-│   │   ├── auth/              # 인증 컴포넌트
-│   │   ├── trading/           # 거래 컴포넌트
-│   │   ├── admin/             # 관리자 컴포넌트
-│   │   ├── layout/            # 레이아웃 컴포넌트
-│   │   └── ui/                # UI 컴포넌트
-│   ├── lib/                   # 유틸리티 라이브러리
-│   └── hooks/                 # React 훅
-├── docs/                      # 문서
-│   ├── final-completion-status.md
-│   ├── project-completion-summary.md
-│   ├── vercel-setup.md
-│   ├── supabase-setup.md
-│   └── demo-accounts.md
-├── websocket-server/          # WebSocket 서버
-└── README.md                  # 이 파일
+│   ├── app/                 # Next.js App Router
+│   │   ├── layout.tsx       # 루트 레이아웃
+│   │   ├── page.tsx         # 홈페이지
+│   │   └── api/             # API 라우트
+│   ├── components/          # 재사용 가능한 컴포넌트
+│   ├── lib/                 # 유틸리티 및 설정
+│   ├── styles/              # 스타일 파일
+│   └── types/               # TypeScript 타입 정의
+├── docs/                    # 프로젝트 문서
+├── tests/                   # 테스트 파일
+├── public/                  # 정적 파일
+└── server/                  # 백엔드 서버
 ```
 
-## 🎯 핵심 혁신 사항
+## ⚡ Flash Trade 시스템
 
-### 1. 완전한 관리자 제어
-- 사용자별 개별 승률 설정
-- 강제 결과 설정 (항상 승리/패배)
-- 실시간 거래 모니터링
-- 수익률 범위 제어
+### 주요 기능
+- **거래 기간**: 30초, 60초, 120초, 300초
+- **거래 방향**: UP/DOWN 선택
+- **거래 금액**: 최소 10 ~ 최대 1,000 USDT
+- **즉시 결과**: 거래 종료 시 즉시 결과 확인
 
-### 2. 가상 시뮬레이션 플랫폼
-- 실제 거래소 연동 없이 안전한 운영
-- 모든 거래 결과를 관리자가 제어
-- 사용자에게는 실제 거래와 동일한 경험 제공
+### 거래 프로세스
+1. 거래 금액 설정
+2. 방향(UP/DOWN) 선택  
+3. 거래 기간 선택
+4. 거래 시작 및 결과 대기
+5. 수익/손실 계산 및 잔액 반영
 
-### 3. 고급 지갑 시스템
-- 8개 주요 암호화폐 지원
-- 다중 네트워크 지원 (Bitcoin, Ethereum, BSC 등)
-- QR 코드 자동 생성
-- 실시간 거래 내역 추적
+## 🌍 다국어 지원
 
-### 4. 직관적 UI/UX
-- 이모지 아이콘으로 친근한 인터페이스
-- 실시간 피드백 및 알림
-- 반응형 디자인 (모바일/데스크톱)
-- 다크/라이트 테마 지원
+지원 언어:
+- 🇰🇷 **한국어** (ko)
+- 🇺🇸 **영어** (en)  
+- 🇨🇳 **중국어 간체** (zh-CN)
+- 🇹🇼 **중국어 번체** (zh-TW)
+- 🇯🇵 **일본어** (ja)
+- 🇫🇷 **프랑스어** (fr)
+- 🇩🇪 **독일어** (de)
+- 🇪🇸 **스페인어** (es)
+- 🇮🇹 **이탈리아어** (it)
+- 🇷🇺 **러시아어** (ru)
 
-## 🚀 향후 확장 가능성
+## 🔒 보안 기능
 
-### 추가 가능한 기능
-- **소셜 트레이딩**: 사용자 간 거래 공유
-- **리더보드**: 수익률 순위 시스템
-- **교육 콘텐츠**: 거래 학습 자료
-- **모바일 앱**: React Native 앱 개발
+- **JWT 기반 인증**: 안전한 토큰 기반 인증
+- **Rate Limiting**: API 요청 제한
+- **CORS 보안**: 교차 출처 요청 보호
+- **암호화**: 비밀번호 해싱
 
-### 기술적 확장
-- **마이크로서비스**: 기능별 서비스 분리
-- **캐싱**: Redis 캐시 시스템
-- **모니터링**: 실시간 성능 모니터링
-- **AI 강화**: 더 정교한 AI 거래 시뮬레이션
+## 🧪 테스트
 
-## 📚 문서
+```bash
+# 유닛 테스트
+npm run test
 
-- [프로젝트 완성 상태](PROJECT_COMPLETION_STATUS.md) - 100% 완성 상세 분석
-- [고급 관리자 제어 시스템](docs/advanced-admin-control-system.md) - 관리자 제어 가이드
-- [시스템 아키텍처](docs/architecture.md) - 전체 시스템 구조
-- [기능 명세서](docs/feature-spec.md) - 각 기능 상세 설명
-- [배포 가이드](docs/deployment-guide.md) - 배포 상세 가이드
-- [환경 변수 가이드](docs/env-variables.md) - 환경 설정
-- [프로덕션 체크리스트](docs/production-checklist.md) - 배포 전 확인사항
-- [모니터링 가이드](docs/monitoring-logging.md) - 운영 모니터링
-- [데모 계정 정보](docs/demo-accounts.md) - 테스트 계정 상세
-- [향후 로드맵](docs/future-roadmap.md) - 개발 계획
+# E2E 테스트
+npm run test:e2e
 
-## 🤝 기여
+# 테스트 커버리지
+npm run test:coverage
 
-이 프로젝트는 완전히 완성된 상태입니다. 추가 기능이나 개선 사항이 있다면 이슈를 생성해 주세요.
+# 린팅
+npm run lint
 
-## 📄 라이선스
+# 타입 체크
+npm run type-check
+```
 
-이 프로젝트는 MIT 라이선스 하에 배포됩니다.
+## 📈 배포
 
-## 🏆 최종 결론
+### Docker
+```bash
+# 이미지 빌드
+docker build -t cryptotrader .
 
-**QuantTrade 플랫폼이 100% 완성되었습니다!** 🎉
+# 컨테이너 실행
+docker run -p 3000:3000 cryptotrader
+```
 
-### 주요 성과
-- ✅ **완전한 기능 구현**: 모든 핵심 기능 100% 완성
-- ✅ **안전한 운영**: 가상 시뮬레이션 기반 리스크 제로
-- ✅ **완전한 제어**: 관리자가 모든 결과를 제어 가능
-- ✅ **즉시 운영 가능**: 파일 시스템 기반으로 즉시 실행
-- ✅ **확장 가능**: 모듈화된 아키텍처로 쉬운 기능 추가
+### 환경변수 설정
+배포 전 다음 환경변수들을 설정해야 합니다:
 
-### 운영 준비 완료
-- 🔧 **기술적 완성**: 모든 시스템 안정적 동작
-- 📱 **사용자 경험**: 직관적이고 반응성 좋은 UI
-- 🔐 **보안**: 다층 보안 시스템 적용
-- 📊 **모니터링**: 실시간 관리자 제어 시스템
-- 🚀 **배포**: Vercel 즉시 배포 가능
+```bash
+NEXT_PUBLIC_APP_URL=https://your-domain.com
+SUPABASE_URL=your-supabase-url
+SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+JWT_SECRET=your-secret-key
+```
 
-**모든 기능이 완벽하게 구현되어 즉시 운영 가능한 상태입니다.**
+## 🤝 기여하기
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 라이선스
+
+이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
+
+## 📞 지원
+
+- 📧 **이메일**: support@cryptotrader.com
+- 📚 **문서**: [docs/](./docs/) 폴더 참조
 
 ---
 
-**프로젝트**: QuantTrade 가상 거래 플랫폼  
-**완성도**: 100% 🎉  
-**상태**: 운영 준비 완료 ✅  
-**생성일**: 2024년 12월 28일  
-**최종 업데이트**: 2024년 12월 28일
+**CryptoTrader** - 암호화폐 거래 플랫폼 🚀 

@@ -136,6 +136,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     
     try {
+      console.log('🔐 AuthProvider: Attempting login with:', { email, rememberMe });
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -146,16 +148,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       const result = await response.json();
+      console.log('📊 AuthProvider: Login response:', { status: response.status, result });
 
       if (!response.ok) {
         throw new Error(result.error || 'Login failed');
       }
 
       if (result.success && result.user) {
-        setUser(result.user);
+        // API 응답 구조에 맞게 사용자 정보 변환
+        const transformedUser = {
+          id: result.user.id,
+          email: result.user.email,
+          username: result.user.nickname || result.user.email,
+          role: result.user.role,
+          balance: parseFloat(result.user.balance || '0'),
+          isActive: result.user.isActive,
+          createdAt: new Date(result.user.createdAt),
+          updatedAt: new Date(result.user.updatedAt)
+        };
+        
+        console.log('✅ AuthProvider: Setting user:', transformedUser);
+        setUser(transformedUser);
+        
+        // 토큰을 쿠키에 저장
+        if (result.tokens?.accessToken) {
+          setAuthTokenCookie(result.tokens.accessToken, rememberMe);
+        }
       }
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('❌ AuthProvider: Login failed:', error);
       throw error;
     } finally {
       setIsLoading(false);

@@ -1,129 +1,181 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, JetBrains_Mono, Noto_Sans_KR } from 'next/font/google';
 import './globals.css';
-import { validateEnvironment } from '../lib/environment';
-import { APP_INFO } from '../lib/config';
-import { Providers } from '../components/providers';
-import { ThemeProvider } from "@/lib/ThemeProvider";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Providers } from '@/components/providers/Providers';
+import { ThemeProvider } from '@/components/providers/theme-provider';
+import { ToasterProvider } from '@/components/ui/toaster';
+import { cn } from '@/lib/utils';
+import { validateEnvironment } from '@/lib/environment';
+import { ErrorBoundary } from '@/components/error-boundary';
+import { Suspense } from 'react';
+import { Loading } from '@/components/ui/loading';
 
-const inter = Inter({ subsets: ['latin'] });
-
-// 서버 사이드에서 환경 변수 검증
+// 환경변수 초기화 (서버 사이드에서만)
 if (typeof window === 'undefined') {
-  validateEnvironment();
+  try {
+    validateEnvironment();
+  } catch (error) {
+    console.warn('Environment validation warning:', error);
+  }
 }
+
+// 폰트 설정
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-mono',
+});
+
+const notoSansKR = Noto_Sans_KR({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-korean',
+});
 
 export const metadata: Metadata = {
   title: {
-    default: APP_INFO.name,
-    template: `%s | ${APP_INFO.name}`,
+    default: 'CryptoTrader - 차세대 암호화폐 거래 플랫폼',
+    template: '%s | CryptoTrader'
   },
-  description: APP_INFO.description,
-  keywords: [
-    '암호화폐',
-    '거래',
-    '투자',
-    'cryptocurrency',
-    'trading',
-    'investment',
-    'blockchain',
-    'bitcoin',
-    'ethereum',
-  ],
-  authors: [{ name: APP_INFO.name }],
-  creator: APP_INFO.name,
-  publisher: APP_INFO.name,
+  description: 'AI 기반 인사이트로 스마트한 암호화폐 거래 경험을 제공하는 전문 플랫폼',
+  keywords: ['암호화폐', '비트코인', '거래', 'Flash Trade', 'AI', '블록체인'],
+  authors: [{ name: 'CryptoTrader Team' }],
+  creator: 'CryptoTrader',
+  publisher: 'CryptoTrader',
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
-  alternates: {
-    canonical: '/',
-    languages: {
-      'ko-KR': '/ko',
-      'en-US': '/en',
-    },
-  },
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
     url: '/',
-    title: APP_INFO.name,
-    description: APP_INFO.description,
-    siteName: APP_INFO.name,
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: APP_INFO.name,
-      },
-    ],
+    title: 'CryptoTrader - 차세대 암호화폐 거래 플랫폼',
+    description: 'AI 기반 인사이트로 스마트한 암호화폐 거래 경험을 제공하는 전문 플랫폼',
+    siteName: 'CryptoTrader',
   },
   twitter: {
     card: 'summary_large_image',
-    title: APP_INFO.name,
-    description: APP_INFO.description,
-    images: ['/og-image.png'],
-    creator: '@' + APP_INFO.name.toLowerCase(),
+    title: 'CryptoTrader - 차세대 암호화폐 거래 플랫폼',
+    description: 'AI 기반 인사이트로 스마트한 암호화폐 거래 경험을 제공하는 전문 플랫폼',
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
   },
-
-  verification: {
-    ...(process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION && { google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION }),
-    ...(process.env.NEXT_PUBLIC_YANDEX_VERIFICATION && { yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION }),
-    ...(process.env.NEXT_PUBLIC_YAHOO_VERIFICATION && { yahoo: process.env.NEXT_PUBLIC_YAHOO_VERIFICATION }),
-  },
-  category: 'technology',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0A0A0B' },
+  ],
+  manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon-16x16.png',
     apple: '/apple-touch-icon.png',
   },
-  manifest: '/site.webmanifest',
 };
 
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-};
-
-export default function RootLayout({
-  children,
-}: {
+interface RootLayoutProps {
   children: React.ReactNode;
-}) {
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang='ko' suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          storageKey="cryptotrader-theme"
+    <html 
+      lang="ko" 
+      className={cn(
+        inter.variable,
+        jetbrainsMono.variable,
+        notoSansKR.variable,
+        'dark' // 기본 다크모드
+      )}
+      suppressHydrationWarning
+    >
+      <head>
+        {/* 성능 최적화 */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+        
+        {/* PWA 설정 */}
+        <meta name="application-name" content="CryptoTrader" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="CryptoTrader" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
+        <meta name="msapplication-TileColor" content="#0A0A0B" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        
+        {/* iOS 세이프 에리어 */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+      </head>
+      
+      <body 
+        className={cn(
+          'min-h-screen bg-background-primary text-text-primary',
+          'font-sans antialiased',
+          'dark-mode-transition' // 부드러운 테마 전환
+        )}
+      >
+        {/* 접근성 개선: 스킵 링크 */}
+        <a href="#main-content" className="skip-link">
+          메인 콘텐츠로 건너뛰기
+        </a>
+        
+        <ErrorBoundary 
+          fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="text-center">
+                <h1 className="text-2xl font-bold text-danger-red mb-4">
+                  오류가 발생했습니다
+                </h1>
+                <p className="text-text-secondary mb-4">
+                  페이지를 새로고침하거나 잠시 후 다시 시도해주세요.
+                </p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="btn btn-primary"
+                >
+                  새로고침
+                </button>
+              </div>
+            </div>
+          }
         >
-          <TooltipProvider>
-            <Providers>
-              <main className='min-h-screen bg-background'>{children}</main>
-            </Providers>
-            <Toaster />
-          </TooltipProvider>
-        </ThemeProvider>
+          <ThemeProvider defaultTheme="dark" storageKey="crypto-trader-theme">
+            <ToasterProvider>
+              <Providers>
+                <Suspense fallback={<Loading text="로딩 중..." />}>
+                  <main id="main-content" className="app-layout">
+                    {children}
+                  </main>
+                </Suspense>
+              </Providers>
+            </ToasterProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
+        
+        {/* 디버그 정보 (개발 환경에서만) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="fixed bottom-4 left-4 z-50 hidden">
+            <div className="glass-card p-2 text-xs text-text-muted">
+              <div>Env: {process.env.NODE_ENV}</div>
+              <div>Version: 2.0.0</div>
+            </div>
+          </div>
+        )}
       </body>
     </html>
   );

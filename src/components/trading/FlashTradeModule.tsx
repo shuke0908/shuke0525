@@ -44,7 +44,7 @@ import {
 } from 'lucide-react';
 import FlashTradeResultModal from './FlashTradeResultModal';
 // 통합 API 클라이언트 사용
-import { tradeApi } from '@/lib/api-client-unified';
+import { tradeApi } from '@/lib/api-client';
 
 // 타입 정의 (관리자 제어 중심)
 type FlashTradeSetting = {
@@ -263,7 +263,6 @@ const FlashTradeModule = ({
   const [currentPrice, setCurrentPrice] = useState<string>(propCurrentPrice);
   const [showResultModal, setShowResultModal] = useState(false);
   const [tradeResult, setTradeResult] = useState<FlashTradeResult | null>(null);
-  const [activeTrades, setActiveTrades] = useState<ActiveFlashTrade[]>([]);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -299,8 +298,8 @@ const FlashTradeModule = ({
     }
   }, [settings, form]);
 
-  // WebSocket 연결 및 메시지 처리
-  const webSocketResult = useWebSocket({
+  // WebSocket 연결 및 메시지 처리 (개발 환경에서는 비활성화)
+  const webSocketResult = useWebSocket(null, {
     onMessage: (data: any) => {
       if (data.type === 'flash_price_update') {
         if (data.data.symbol === symbol) {
@@ -406,40 +405,7 @@ const FlashTradeModule = ({
     ? (form.watch('amount') * selectedSetting.returnRate) / 100
     : 0;
 
-  // 타이머 업데이트
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTrades(prev => 
-        prev.map(trade => {
-          if (trade.status === 'active' && Date.now() >= trade.remainingTime) {
-            // 거래 완료 - 랜덤하게 승/패 결정 (실제로는 실제 가격 비교)
-            const currentPriceNum = parseFloat(currentPrice);
-            const priceChange = (Math.random() - 0.5) * 0.02; // -1% ~ +1% 변화
-            const finalPrice = trade.entryPrice * (1 + priceChange);
-            
-            const won = (trade.direction === 'up' && finalPrice > trade.entryPrice) ||
-                        (trade.direction === 'down' && finalPrice < trade.entryPrice);
-            
-            const newStatus = won ? 'completed' : 'pending';
-            
-            // 결과 알림
-            toast({
-              title: won ? "Trade Won! 🎉" : "Trade Lost 😔",
-              description: won 
-                ? `You won $${(trade.amount * trade.returnRate / 100).toFixed(2)}!`
-                : `You lost $${trade.amount.toFixed(2)}`,
-              variant: won ? "default" : "destructive",
-            });
-            
-            return { ...trade, status: newStatus };
-          }
-          return trade;
-        })
-      );
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [currentPrice, toast]);
+  // 타이머 업데이트 제거됨 - useLocalTimer 훅에서 처리
 
   // 남은 시간 계산
   const getRemainingTime = (trade: ActiveFlashTrade) => {
@@ -483,26 +449,40 @@ const FlashTradeModule = ({
   );
 
   const renderDirectionButtons = () => (
-    <div className='grid grid-cols-2 gap-2'>
+    <div className='grid grid-cols-2 gap-3'>
       <Button
         type='button'
         variant={form.watch('direction') === 'up' ? 'default' : 'outline'}
         onClick={() => form.setValue('direction', 'up')}
         disabled={createMutation.isPending}
-        className='h-12'
+        className={`h-14 font-semibold text-base transition-all duration-200 ${
+          form.watch('direction') === 'up' 
+            ? 'bg-success-500 hover:bg-success-600 text-white shadow-glow border-success-400' 
+            : 'bg-background-tertiary hover:bg-background-hover text-text-primary border-border-primary hover:border-success-400'
+        }`}
       >
-        <ArrowUp className='mr-2 h-4 w-4' />
-        Higher
+        <ArrowUp className='mr-2 h-5 w-5' />
+        <div className="flex flex-col items-start">
+          <span>UP</span>
+          <span className="text-xs opacity-80">Higher</span>
+        </div>
       </Button>
       <Button
         type='button'
         variant={form.watch('direction') === 'down' ? 'default' : 'outline'}
         onClick={() => form.setValue('direction', 'down')}
         disabled={createMutation.isPending}
-        className='h-12'
+        className={`h-14 font-semibold text-base transition-all duration-200 ${
+          form.watch('direction') === 'down' 
+            ? 'bg-error-500 hover:bg-error-600 text-white shadow-glow border-error-400' 
+            : 'bg-background-tertiary hover:bg-background-hover text-text-primary border-border-primary hover:border-error-400'
+        }`}
       >
-        <ArrowDown className='mr-2 h-4 w-4' />
-        Lower
+        <ArrowDown className='mr-2 h-5 w-5' />
+        <div className="flex flex-col items-start">
+          <span>DOWN</span>
+          <span className="text-xs opacity-80">Lower</span>
+        </div>
       </Button>
     </div>
   );
@@ -556,34 +536,48 @@ const FlashTradeModule = ({
 
   return (
     <>
-      <Card>
-        <CardHeader>
+      <Card className="bg-background-tertiary border-border-primary shadow-medium">
+        <CardHeader className="border-b border-border-primary">
           <div className='flex items-center justify-between'>
             <div>
-              <CardTitle className='flex items-center gap-2'>
-                <Zap className='h-5 w-5' />
+              <CardTitle className='flex items-center gap-2 text-text-primary'>
+                <Zap className='h-5 w-5 text-primary-400' />
                 Flash Trade
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-text-secondary">
                 Quick trades with fixed time and return rates
               </CardDescription>
             </div>
-            <Badge variant={isConnected ? 'default' : 'destructive'}>
+            <Badge 
+              variant={isConnected ? 'default' : 'destructive'}
+              className={isConnected 
+                ? 'bg-success-500/10 text-success-400 border-success-500/20' 
+                : 'bg-error-500/10 text-error-400 border-error-500/20'
+              }
+            >
               {isConnected ? 'Connected' : 'Disconnected'}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           {/* Current Price Display */}
-          <div className='bg-muted p-4 rounded-lg mb-6'>
+          <div className='bg-background-secondary border border-border-primary p-6 rounded-xl mb-6 backdrop-blur-glass'>
             <div className='flex items-center justify-between'>
               <div>
-                <div className='text-sm text-muted-foreground'>{symbol}</div>
-                <div className='text-2xl font-bold'>
+                <div className='text-sm text-text-tertiary font-medium mb-1'>{symbol}</div>
+                <div className='text-3xl font-bold text-text-primary font-mono'>
                   ${parseFloat(currentPrice).toLocaleString()}
                 </div>
+                <div className="text-sm text-text-secondary mt-1">
+                  Real-time price
+                </div>
               </div>
-              <TrendingUp className='h-8 w-8 text-muted-foreground' />
+              <div className="flex flex-col items-end">
+                <TrendingUp className='h-10 w-10 text-primary-400 mb-2' />
+                <div className="text-xs text-text-tertiary">
+                  Live Market
+                </div>
+              </div>
             </div>
           </div>
 

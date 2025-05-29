@@ -13,8 +13,9 @@ import {
   userApi,
   tradeApi,
   adminApi,
-  type AdminAction,
-} from '@/lib/api-client-unified';
+  walletApi,
+  supportApi,
+} from '@/lib/api-client';
 
 // Query Keys
 export const queryKeys = {

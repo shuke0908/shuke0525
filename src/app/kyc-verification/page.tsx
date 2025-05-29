@@ -12,7 +12,7 @@ import { Upload, CheckCircle, Clock, XCircle, FileText, Camera, Shield } from "l
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { kycApi } from "@/lib/api-client-unified";
+import { userApi } from "@/lib/api-client";
 
 type KycDocument = {
   id: number;
@@ -46,7 +46,7 @@ export default function KycVerificationPage() {
   // Get KYC status
   const { data: kycData, isLoading: kycLoading } = useQuery({
     queryKey: ['kyc', 'status'],
-    queryFn: () => kycApi.getKycStatus(),
+    queryFn: () => userApi.getKycStatus(),
   });
 
   const kycStatus: KycStatus = kycData || { status: 'not_started', documents: [] };
@@ -54,7 +54,7 @@ export default function KycVerificationPage() {
   // Upload document mutation
   const uploadMutation = useMutation({
     mutationFn: ({ file, type }: { file: File; type: string }) => 
-      kycApi.uploadKycDocument(file, type),
+      userApi.uploadKycDocument(file, type),
     onSuccess: () => {
       toast({
         title: "Document Uploaded",
@@ -73,7 +73,7 @@ export default function KycVerificationPage() {
 
   // Submit KYC documents mutation
   const submitMutation = useMutation({
-    mutationFn: (data: any) => kycApi.submitKycDocuments(data),
+    mutationFn: (data: any) => userApi.submitKycDocuments(data),
     onSuccess: () => {
       toast({
         title: "KYC Submitted",

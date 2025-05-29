@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ReactNode } from 'react';
-import { Redirect, useLocation } from 'wouter';
+import { redirect } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import { Loader2 } from 'lucide-react';
 
@@ -10,7 +11,7 @@ type ProtectedRouteProps = {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
-  const [location] = useLocation();
+  const pathname = usePathname();
 
   if (isLoading) {
     return (
@@ -21,7 +22,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isAuthenticated) {
-    return <Redirect to={`/login?redirect=${encodeURIComponent(location)}`} />;
+    redirect(`/login?redirect=${encodeURIComponent(pathname)}`);
+    return null;
   }
 
   return <>{children}</>;

@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase-server';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabase = createServerSupabaseClient();
 
 // 실시간 FlashTrade 모니터링 데이터 조회
 export async function GET(request: NextRequest) {
@@ -12,6 +9,66 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'active';
     const limit = parseInt(searchParams.get('limit') || '50');
+
+    // Supabase가 설정되지 않은 경우 mock 데이터 반환
+    if (!supabase) {
+      const mockActiveTrades = [
+        {
+          id: '1',
+          user_id: 'user1',
+          symbol: 'BTC/USDT',
+          amount: 100,
+          direction: 'up',
+          entry_price: 41000,
+          current_price: 41200,
+          return_rate: 85,
+          status: 'active',
+          created_at: new Date().toISOString(),
+          users: {
+            id: 'user1',
+            email: 'user1@example.com',
+            username: 'trader1',
+            balance: 1000
+          }
+        },
+        {
+          id: '2',
+          user_id: 'user2',
+          symbol: 'ETH/USDT',
+          amount: 50,
+          direction: 'down',
+          entry_price: 2500,
+          current_price: 2480,
+          return_rate: 85,
+          status: 'active',
+          created_at: new Date().toISOString(),
+          users: {
+            id: 'user2',
+            email: 'user2@example.com',
+            username: 'trader2',
+            balance: 500
+          }
+        }
+      ];
+
+      return NextResponse.json({
+        success: true,
+        activeTrades: mockActiveTrades,
+        statistics: {
+          totalActiveTrades: 2,
+          totalActiveAmount: 150,
+          upTrades: 1,
+          downTrades: 1,
+          completed24h: {
+            total: 25,
+            won: 15,
+            lost: 10,
+            totalVolume: 2500,
+            totalProfit: 125
+          }
+        }
+      });
+    }
 
     // 활성 FlashTrade 조회
     const { data: activeTrades, error: tradesError } = await supabase

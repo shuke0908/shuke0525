@@ -37,7 +37,7 @@ export function QuickTradeModule({ symbol = "BTC/USDT", currentPrice = "41255.78
         throw new Error('Please login to trade');
       }
 
-      const response = await fetch('/api/quick-trade', {
+      const response = await fetch('/api/quick-trade/create', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

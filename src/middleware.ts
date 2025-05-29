@@ -140,10 +140,15 @@ function logRequest(request: NextRequest, user: any = null, action: string = 'AC
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
 
 function checkRateLimit(request: NextRequest): boolean {
+  // 개발 환경에서는 Rate Limiting 비활성화
+  if (process.env.NODE_ENV === 'development') {
+    return true;
+  }
+
   const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
   const now = Date.now();
   const windowMs = 15 * 60 * 1000; // 15분
-  const maxRequests = 100; // 15분당 최대 100 요청
+  const maxRequests = 1000; // 15분당 최대 1000 요청 (더 관대하게 설정)
 
   const current = requestCounts.get(ip);
   

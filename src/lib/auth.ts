@@ -80,6 +80,11 @@ export function verifyToken(token: string, isRefreshToken = false): JWTPayload |
 }
 
 /**
+ * JWT 토큰 검증 (별칭)
+ */
+export const verifyJWT = verifyToken;
+
+/**
  * 토큰 쌍 생성 (액세스 + 리프레시)
  */
 export function generateTokenPair(user: User): AuthTokens {

@@ -3,47 +3,71 @@
  * 환경변수 기반으로 API URL과 설정을 동적으로 관리합니다.
  */
 
-// ===== 환경변수 기반 API URL 설정 =====
+// API Configuration for the new modular client
+export interface ApiConfig {
+  baseURL: string;
+  timeout: number;
+  enableErrorToast: boolean;
+  enableSuccessToast: boolean;
+  headers: Record<string, string>;
+}
+
+// Environment-based configuration
+const configs: Record<string, ApiConfig> = {
+  development: {
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
+    timeout: 30000,
+    enableErrorToast: true,
+    enableSuccessToast: true,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  },
+  production: {
+    baseURL: process.env.NEXT_PUBLIC_API_URL || '',
+    timeout: 15000,
+    enableErrorToast: true,
+    enableSuccessToast: false,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  },
+  test: {
+    baseURL: 'http://localhost:3000',
+    timeout: 5000,
+    enableErrorToast: false,
+    enableSuccessToast: false,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  },
+};
+
+export const getApiConfig = (env: string = process.env.NODE_ENV): ApiConfig => {
+  const config = configs[env as keyof typeof configs];
+  if (!config) {
+    console.warn(`No API config found for environment: ${env}, falling back to development`);
+    return configs.development;
+  }
+  return config;
+};
+
 export function getApiBaseUrl(): string {
-  // 1. 환경변수에서 명시적으로 설정된 API URL 확인
-  if (typeof window !== 'undefined') {
-    // 클라이언트 사이드에서는 NEXT_PUBLIC_* 환경변수만 사용 가능
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (apiUrl) {
-      // 절대 URL인 경우 그대로 반환
-      if (apiUrl.startsWith('http')) {
-        return apiUrl;
-      }
-      // 상대 경로인 경우 현재 origin과 조합
-      return `${window.location.origin}${apiUrl}`;
-    }
-    
-    // APP_URL이 설정된 경우 /api를 추가
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-    if (appUrl) {
-      return `${appUrl}/api`;
-    }
-    
-    // 기본값: 현재 도메인의 /api
-    return `${window.location.origin}/api`;
-  } else {
-    // 서버 사이드에서는 모든 환경변수 사용 가능
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL;
-    if (apiUrl) {
-      return apiUrl.startsWith('http') ? apiUrl : `http://localhost:3000${apiUrl}`;
-    }
-    
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
-    if (appUrl) {
-      return `${appUrl}/api`;
-    }
-    
-    // 서버 사이드 기본값
-    return 'http://localhost:3000/api';
+  return getApiConfig().baseURL;
+}
+
+export function logApiConfig(): void {
+  if (process.env.NODE_ENV === 'development') {
+    const config = getApiConfig();
+    console.log('[API Config]', {
+      environment: process.env.NODE_ENV,
+      baseURL: config.baseURL,
+      timeout: config.timeout,
+    });
   }
 }
 
-// ===== API 기본 설정 =====
+// ===== API 기본 설정 (레거시 호환성) =====
 export const API_CONFIG = {
   // 기본 URL (환경에 따라 동적 설정)
   get baseURL() {
@@ -86,15 +110,6 @@ export const API_CONFIG = {
   },
 } as const;
 
-// ===== 현재 환경 설정 가져오기 =====
-export function getCurrentConfig() {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  return {
-    ...API_CONFIG,
-    ...(isDevelopment ? API_CONFIG.development : API_CONFIG.production),
-  };
-}
-
 // ===== 환경변수 검증 =====
 export function validateApiConfig(): {
   isValid: boolean;
@@ -131,27 +146,6 @@ export function validateApiConfig(): {
     errors,
     warnings,
   };
-}
-
-// ===== 환경별 API URL 로깅 =====
-export function logApiConfig() {
-  if (process.env.NODE_ENV === 'development') {
-    const config = validateApiConfig();
-    console.group('🔧 API Configuration');
-    console.log('Base URL:', getApiBaseUrl());
-    console.log('Environment:', process.env.NODE_ENV);
-    console.log('Validation:', config.isValid ? '✅ Valid' : '❌ Invalid');
-    
-    if (config.errors.length > 0) {
-      console.error('Errors:', config.errors);
-    }
-    
-    if (config.warnings.length > 0) {
-      console.warn('Warnings:', config.warnings);
-    }
-    
-    console.groupEnd();
-  }
 }
 
 // ===== 타입 정의 =====

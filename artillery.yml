@@ -1,0 +1,135 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 60
+      arrivalRate: 5
+    - duration: 120
+      arrivalRate: 10
+    - duration: 60
+      arrivalRate: 2
+  defaults:
+    headers:
+      user-agent: 'Artillery Load Test'
+      accept: 'application/json, text/html'
+  processor: "./tests/load/load-test.js"
+  
+scenarios:
+  - name: "Homepage Load Test"
+    weight: 30
+    flow:
+      - get:
+          url: "/"
+          capture:
+            - json: "$.title"
+              as: "pageTitle"
+      - think: 2
+      - get:
+          url: "/api/health"
+          expect:
+            - statusCode: 200
+
+  - name: "Trading Flow"
+    weight: 40
+    flow:
+      - function: "simulateAuthenticatedUser"
+      - get:
+          url: "/"
+      - think: 1
+      - get:
+          url: "/trading"
+          headers:
+            authorization: "{{ authToken }}"
+      - think: 3
+      - get:
+          url: "/api/market/prices"
+          expect:
+            - statusCode: 200
+            - hasProperty: "BTC"
+      - think: 2
+      - post:
+          url: "/api/orders"
+          headers:
+            authorization: "{{ authToken }}"
+            content-type: "application/json"
+          json:
+            symbol: "BTC/USD"
+            amount: 0.01
+            type: "buy"
+            price: 50000
+          expect:
+            - statusCode: [200, 201, 400] # 400은 시뮬레이션에서 허용
+
+  - name: "Portfolio View"
+    weight: 20
+    flow:
+      - function: "simulateAuthenticatedUser"
+      - get:
+          url: "/portfolio"
+          headers:
+            authorization: "{{ authToken }}"
+      - think: 2
+      - get:
+          url: "/api/portfolio/summary"
+          headers:
+            authorization: "{{ authToken }}"
+          expect:
+            - statusCode: [200, 401] # 401은 인증 실패로 허용
+      - get:
+          url: "/api/portfolio/history"
+          headers:
+            authorization: "{{ authToken }}"
+
+  - name: "Mobile User Simulation"
+    weight: 10
+    flow:
+      - function: "simulateMobileUser"
+      - get:
+          url: "/"
+          headers:
+            user-agent: "{{ userAgent }}"
+      - think: 1
+      - get:
+          url: "/trading"
+          headers:
+            user-agent: "{{ userAgent }}"
+            viewport: "375x667"
+
+plugins:
+  expect: {}
+  metrics-by-endpoint: {}
+
+# 환경별 설정
+environments:
+  development:
+    target: 'http://localhost:3000'
+    phases:
+      - duration: 30
+        arrivalRate: 2
+    
+  staging:
+    target: 'https://staging.cryptotrader.com'
+    phases:
+      - duration: 120
+        arrivalRate: 5
+      - duration: 300
+        arrivalRate: 15
+      - duration: 120
+        arrivalRate: 5
+    tls:
+      rejectUnauthorized: false
+    
+  production:
+    target: 'https://cryptotrader.com'
+    phases:
+      - duration: 300
+        arrivalRate: 10
+      - duration: 600
+        arrivalRate: 25
+      - duration: 300
+        arrivalRate: 50
+      - duration: 300
+        arrivalRate: 25
+      - duration: 300
+        arrivalRate: 10
+    tls:
+      rejectUnauthorized: true 

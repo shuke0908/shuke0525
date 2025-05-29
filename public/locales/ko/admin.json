@@ -1,22 +1,17 @@
 {
-  "dashboard": {
-    "title": "관리자 대시보드",
-    "users": "사용자",
-    "trades": "거래",
-    "revenue": "수익",
-    "settings": "설정"
-  },
-  "users": {
-    "title": "사용자 관리",
-    "totalUsers": "전체 사용자",
-    "activeUsers": "활성 사용자",
-    "newUsers": "신규 사용자"
-  },
-  "trading": {
-    "title": "거래 설정",
-    "flashTrade": "플래시 트레이드",
-    "quickTrade": "퀵 트레이드",
-    "quantAI": "퀀트 AI",
-    "wallet": "지갑 설정"
-  }
-} 
+  "admin": "관리자",
+  "dashboard": "대시보드",
+  "users": "사용자",
+  "settings": "설정",
+  "reports": "보고서",
+  "analytics": "분석",
+  "manage": "관리",
+  "create": "생성",
+  "edit": "편집",
+  "delete": "삭제",
+  "view": "보기",
+  "search": "검색",
+  "filter": "필터",
+  "export": "내보내기",
+  "import": "가져오기"
+}

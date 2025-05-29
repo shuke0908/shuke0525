@@ -1,12 +1,13 @@
-import { Link, useLocation } from 'wouter';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Home, Clock, Bot, Wallet, ShieldCheck } from 'lucide-react';
 
 const MobileNav = () => {
-  const [location] = useLocation();
+  const pathname = usePathname();
 
   const isActive = (path: string) => {
-    return location === path;
+    return pathname === path;
   };
 
   const navItems = [

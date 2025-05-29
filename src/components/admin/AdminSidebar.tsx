@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link, useLocation } from 'wouter';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth/AuthProvider';
 import {
@@ -28,13 +29,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 
 export default function AdminSidebar() {
-  const [location] = useLocation();
+  const pathname = usePathname();
   const { user } = useAuth();
 
   // Add debug log
   console.log(
-    'Rendering AdminSidebar with location:',
-    location,
+    'Rendering AdminSidebar with pathname:',
+    pathname,
     'and user:',
     user?.role
   );
@@ -181,7 +182,7 @@ export default function AdminSidebar() {
           <div className='space-y-1'>
             {dashboardItems.map(item => {
               const Icon = item.icon;
-              const isActive = location === item.path;
+              const isActive = pathname === item.path;
 
               return (
                 <Link
@@ -214,7 +215,7 @@ export default function AdminSidebar() {
             <div className='space-y-1'>
               {monitoringItems.map(item => {
                 const Icon = item.icon;
-                const isActive = location === item.path;
+                const isActive = pathname === item.path;
 
                 return (
                   <Link
@@ -250,7 +251,7 @@ export default function AdminSidebar() {
             <div className='space-y-1'>
               {requestsItems.map(item => {
                 const Icon = item.icon;
-                const isActive = location === item.path;
+                const isActive = pathname === item.path;
 
                 return (
                   <Link
@@ -284,7 +285,7 @@ export default function AdminSidebar() {
             <div className='space-y-1'>
               {managementItems.map(item => {
                 const Icon = item.icon;
-                const isActive = location === item.path;
+                const isActive = pathname === item.path;
 
                 return (
                   <Link
@@ -324,7 +325,7 @@ export default function AdminSidebar() {
             <CollapsibleContent className='pl-3 space-y-1 mt-1'>
               {settingsItems.map(item => {
                 const Icon = item.icon;
-                const isActive = location === item.path;
+                const isActive = pathname === item.path;
 
                 return (
                   <Link

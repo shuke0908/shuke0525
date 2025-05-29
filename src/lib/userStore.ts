@@ -11,11 +11,12 @@ export interface User {
   phoneNumber?: string | null;
   createdAt?: string;
   isEmailVerified?: boolean;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'superadmin';
   balance?: number | string;
   vipLevel?: '1' | '2' | '3' | '4' | '5';
   kycStatus?: 'pending' | 'approved' | 'rejected';
   isTwoFactorEnabled?: boolean;
+  isActive?: boolean;
 }
 
 // 글로벌 사용자 저장소 (실제로는 데이터베이스 사용)

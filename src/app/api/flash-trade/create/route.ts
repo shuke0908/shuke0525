@@ -1,213 +1,107 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { getFlashTradeSettings } from '../../admin/flash-trade-settings/route';
-
-// 개발 환경용 사용자 데이터 (실제로는 데이터베이스에서 조회)
-const developmentUsers = [
-  {
-    id: 'admin-1',
-    email: 'admin@quanttrade.com',
-    username: 'admin',
-    role: 'superadmin' as const,
-    balance: 10000,
-    isActive: true,
-  },
-  {
-    id: 'user-1',
-    email: 'user@quanttrade.com',
-    username: 'user',
-    role: 'user' as const,
-    balance: 1000,
-    isActive: true,
-  },
-  {
-    id: 'trader-1',
-    email: 'trader@quanttrade.com',
-    username: 'trader',
-    role: 'admin' as const,
-    balance: 5000,
-    isActive: true,
-  }
-];
-
-// 메모리 저장소 (실제로는 데이터베이스 사용)
-let flashTrades: any[] = [];
-let tradeIdCounter = 1;
-
-// FlashTrade 생성 스키마
-const createTradeSchema = z.object({
-  amount: z.number().min(1).max(50000),
-  direction: z.enum(['up', 'down']),
-  duration: z.number().min(15).max(3600),
-  symbol: z.string().optional().default('BTC/USDT')
-});
+import { verifyJWT } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    // 헤더에서 사용자 정보 추출 (미들웨어에서 설정)
-    const userId = request.headers.get('x-user-id');
-    const userEmail = request.headers.get('x-user-email');
-
-    if (!userId || !userEmail) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Authentication required',
-          code: 'UNAUTHORIZED'
-        },
-        { status: 401 }
-      );
+    // JWT 토큰 검증
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 사용자 조회
-    const user = developmentUsers.find(u => u.id === userId);
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'User not found',
-          code: 'USER_NOT_FOUND'
-        },
-        { status: 404 }
-      );
+    const token = authHeader.substring(7);
+    const payload = await verifyJWT(token);
+    if (!payload) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const body = await request.json();
-    
-    // 요청 데이터 검증
-    const validationResult = createTradeSchema.safeParse(body);
-    if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid input data',
-          details: validationResult.error.errors,
-          code: 'VALIDATION_ERROR'
-        },
-        { status: 400 }
-      );
+    const userId = payload.userId;
+    const { symbol, amount, direction, duration } = await request.json();
+
+    // 입력 검증
+    if (!symbol || !amount || !direction || !duration) {
+      return NextResponse.json({ 
+        error: 'Symbol, amount, direction, and duration are required' 
+      }, { status: 400 });
     }
 
-    const { amount, direction, duration, symbol } = validationResult.data;
-
-    // 관리자 설정 조회
-    const settings = getFlashTradeSettings(userId);
-
-    // 설정 기반 유효성 검사
-    if (!settings.isActive) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'FlashTrade is currently disabled',
-          code: 'SERVICE_DISABLED'
-        },
-        { status: 503 }
-      );
+    if (!['up', 'down'].includes(direction)) {
+      return NextResponse.json({ 
+        error: 'Direction must be "up" or "down"' 
+      }, { status: 400 });
     }
 
-    if (amount < settings.minAmount || amount > settings.maxAmount) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Amount must be between $${settings.minAmount} and $${settings.maxAmount}`,
-          code: 'INVALID_AMOUNT'
-        },
-        { status: 400 }
-      );
+    if (amount < 1 || amount > 10000) {
+      return NextResponse.json({ 
+        error: 'Amount must be between $1 and $10,000' 
+      }, { status: 400 });
     }
 
-    if (!settings.availableDurations.includes(duration)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Duration ${duration}s is not available`,
-          code: 'INVALID_DURATION'
-        },
-        { status: 400 }
-      );
+    if (![30, 60, 120, 180, 300].includes(duration)) {
+      return NextResponse.json({ 
+        error: 'Duration must be 30, 60, 120, 180, or 300 seconds' 
+      }, { status: 400 });
     }
 
-    // 잔액 확인
-    if (user.balance < amount) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Insufficient balance',
-          code: 'INSUFFICIENT_BALANCE'
-        },
-        { status: 400 }
-      );
-    }
-
-    // 현재 가격 시뮬레이션
-    const currentPrice = 50000 + Math.random() * 10000; // $50,000 ~ $60,000
-
-    // 만료 시간 계산
-    const expiresAt = new Date(Date.now() + duration * 1000);
-
-    // 잠재 수익 계산
-    const potentialProfit = amount * (settings.maxProfitRate / 100);
-
-    // FlashTrade 생성
-    const newTrade = {
-      id: `trade-${tradeIdCounter++}`,
-      userId: user.id,
-      amount,
-      direction,
-      duration,
-      symbol,
-      entryPrice: currentPrice,
-      currentPrice,
-      exitPrice: null,
-      status: 'active',
-      result: null,
-      profit: 0,
-      potentialProfit,
-      returnRate: settings.maxProfitRate,
-      createdAt: new Date(),
-      expiresAt,
-      completedAt: null,
-      // 관리자 설정 정보 포함
-      winRate: settings.winRate,
-      forceResult: settings.forceResult
+    // 수익률 계산 (시뮬레이션)
+    const returnRates = {
+      30: 75,   // 30초: 75%
+      60: 85,   // 1분: 85%
+      120: 90,  // 2분: 90%
+      180: 95,  // 3분: 95%
+      300: 100  // 5분: 100%
     };
 
-    flashTrades.push(newTrade);
+    const returnRate = returnRates[duration as keyof typeof returnRates];
+    const potentialProfit = (amount * returnRate / 100).toFixed(2);
 
-    // 사용자 잔액 차감 (실제로는 데이터베이스 업데이트)
-    user.balance -= amount;
+    // 현재 가격 시뮬레이션
+    const mockPrices: { [key: string]: number } = {
+      'BTC/USDT': 41255.78,
+      'ETH/USDT': 2456.32,
+      'BNB/USDT': 312.45,
+      'XRP/USDT': 0.6234,
+      'SOL/USDT': 98.76,
+      'ADA/USDT': 0.4567,
+      'AVAX/USDT': 36.89,
+      'EUR/USD': 1.0842,
+      'GBP/USD': 1.2654,
+      'USD/JPY': 149.23,
+      'XAU/USD': 1875.23,
+      'XAG/USD': 23.45
+    };
 
-    console.log(`✅ FlashTrade Created: ${newTrade.id} by ${user.email} - $${amount} ${direction} for ${duration}s`);
+    const entryPrice = mockPrices[symbol] || 1.0000;
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Trade created successfully',
-        trade: {
-          id: newTrade.id,
-          amount: newTrade.amount,
-          direction: newTrade.direction,
-          duration: newTrade.duration,
-          symbol: newTrade.symbol,
-          entryPrice: newTrade.entryPrice,
-          potentialProfit: newTrade.potentialProfit,
-          returnRate: newTrade.returnRate,
-          expiresAt: newTrade.expiresAt,
-          status: newTrade.status
-        }
-      },
-      { status: 201 }
-    );
+    // 새 거래 생성 (시뮬레이션)
+    const newTrade = {
+      id: Date.now(),
+      userId,
+      symbol,
+      amount: amount.toString(),
+      direction,
+      duration,
+      returnRate: returnRate.toString(),
+      entryPrice: entryPrice.toString(),
+      potentialProfit,
+      status: 'active',
+      startTime: new Date().toISOString(),
+      endTime: new Date(Date.now() + duration * 1000).toISOString()
+    };
+
+    // 실제 구현에서는 DB에 저장하고 스케줄러로 결과 처리
+    // await db.insert(flashTrades).values(newTrade);
+
+    return NextResponse.json({
+      success: true,
+      data: newTrade,
+      message: 'Flash trade created successfully'
+    });
 
   } catch (error) {
-    console.error('FlashTrade creation error:', error);
-    
+    console.error('Create flash trade API error:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Internal server error',
-        code: 'INTERNAL_ERROR'
-      },
+      { error: 'Failed to create flash trade' },
       { status: 500 }
     );
   }

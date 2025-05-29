@@ -46,7 +46,7 @@ interface UseWebSocketOptions {
   maxReconnectAttempts?: number;
 }
 
-export function useWebSocket(url: string, options: UseWebSocketOptions = {}) {
+export function useWebSocket(url: string | null, options: UseWebSocketOptions = {}) {
   const {
     onMessage,
     onConnect,
@@ -65,6 +65,11 @@ export function useWebSocket(url: string, options: UseWebSocketOptions = {}) {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const connect = useCallback(() => {
+    if (!url) {
+      setConnectionStatus('disconnected');
+      return;
+    }
+
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       return;
     }
@@ -139,12 +144,14 @@ export function useWebSocket(url: string, options: UseWebSocketOptions = {}) {
   }, []);
 
   useEffect(() => {
-    connect();
+    if (url) {
+      connect();
+    }
 
     return () => {
       disconnect();
     };
-  }, [connect, disconnect]);
+  }, [url, connect, disconnect]);
 
   return {
     isConnected,
@@ -158,9 +165,11 @@ export function useWebSocket(url: string, options: UseWebSocketOptions = {}) {
 
 // 실시간 마켓 데이터 전용 훅
 export function useRealTimeMarketData(symbols: string[]) {
-  const { subscribeTo, sendMessage, connectionStatus } = useWebSocket({
-    url: process.env.REACT_APP_WS_MARKET_URL || 'ws://localhost:8082/market',
-  });
+  const wsUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
+    ? 'wss://api.example.com/market' 
+    : 'ws://localhost:8082/market';
+    
+  const { subscribeTo, sendMessage, connectionStatus } = useWebSocket(wsUrl, {});
 
   const [marketData, setMarketData] = useState<Record<string, any>>({});
 

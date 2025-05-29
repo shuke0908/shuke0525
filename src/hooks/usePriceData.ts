@@ -13,11 +13,26 @@ interface FlashTradeData {
 }
 
 export function usePriceData() {
-  const [prices, setPrices] = useState<PriceData>({});
-  const [flashTradeData, setFlashTradeData] = useState<FlashTradeData | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<string | null>(null);
+  const [prices, setPrices] = useState<PriceData>({
+    'BTC/USD': 43250.50,
+    'ETH/USD': 2650.75,
+    'XRP/USD': 0.62,
+    'BNB/USD': 315.80,
+    'USDT/USD': 1.00
+  });
+  const [flashTradeData, setFlashTradeData] = useState<FlashTradeData | null>({
+    totalVolume: 750000,
+    activeTrades: 75,
+    successRate: 85,
+    avgProfit: '7.5'
+  });
+  const [lastUpdate, setLastUpdate] = useState<string | null>(new Date().toISOString());
 
-  const wsUrl = `ws://localhost:${process.env.NEXT_PUBLIC_WEBSOCKET_PORT || 8082}`;
+  // WebSocket 연결을 개발 환경에서는 비활성화 (클라이언트 사이드 안전 체크)
+  const wsEnabled = typeof window !== 'undefined' && 
+    (window.location.hostname !== 'localhost' || 
+     typeof window !== 'undefined' && localStorage.getItem('enableWS') === 'true');
+  const wsUrl = wsEnabled ? `ws://localhost:8082` : null;
 
   const { isConnected, connectionStatus, sendMessage } = useWebSocket(wsUrl, {
     onMessage: (message) => {

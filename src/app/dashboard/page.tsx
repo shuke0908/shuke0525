@@ -1,303 +1,215 @@
 'use client';
 
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { ClientOnly } from "@/components/ui/client-only";
 import { 
   TrendingUp, 
   DollarSign, 
   BarChart3, 
-  Activity, 
-  Target,
-  Clock
+  Activity
 } from "lucide-react";
-import { usePriceData } from "@/hooks/usePriceData";
-import { QuickTradeModule } from "@/components/trading/QuickTradeModule";
-import { FlashTradeModule } from "@/components/trading/FlashTradeModule";
-import { QuantAIModule } from "@/components/QuantAIModule";
-import { AppLayout } from "@/components/layout";
 
 function DashboardPage() {
-  const [activeTab, setActiveTab] = useState("overview");
-  const { prices, isConnected } = usePriceData();
+  // 포맷팅 함수들
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('ko-KR', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
 
-  // Get dashboard data
-  const { data: dashboardData, isLoading: _isLoading } = useQuery({
-    queryKey: ['dashboard', 'overview'],
-    queryFn: async () => {
-      const response = await fetch('/api/dashboard/overview');
-      if (!response.ok) throw new Error('Failed to fetch dashboard data');
-      return response.json();
-    },
-  });
-
-  // Get active positions
-  const { data: positionsData } = useQuery({
-    queryKey: ['dashboard', 'positions'],
-    queryFn: async () => {
-      const response = await fetch('/api/quick-trade/positions');
-      if (!response.ok) throw new Error('Failed to fetch positions');
-      return response.json();
-    },
-  });
-
-  // Get recent trades
-  const { data: tradesData } = useQuery({
-    queryKey: ['dashboard', 'trades'],
-    queryFn: async () => {
-      const response = await fetch('/api/dashboard/recent-trades');
-      if (!response.ok) throw new Error('Failed to fetch trades');
-      return response.json();
-    },
-  });
-
-  const portfolioValue = dashboardData?.portfolioValue || "12,450.75";
-  const dailyVolume = dashboardData?.dailyVolume || "8,234.50";
-  const activePositions = positionsData?.positions?.length || 3;
-  const totalProfit = dashboardData?.totalProfit || "+2,145.30";
-  const profitPercentage = dashboardData?.profitPercentage || "+15.2%";
-
-  const recentTrades = tradesData?.trades || [];
-  const activePositionsList = positionsData?.positions || [];
+  const formatPercentage = (value: number) => {
+    const sign = value >= 0 ? '+' : '';
+    return `${sign}${value.toFixed(2)}%`;
+  };
 
   return (
-    <AppLayout 
-      title="Dashboard" 
-      description="Welcome back! Here's your trading overview"
-      variant="user"
-    >
-      <div className="mb-6">
-        <div className="flex items-center space-x-2">
-          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-          <span className="text-sm text-muted-foreground">
-            {isConnected ? 'Live Market Data' : 'Connecting...'}
-          </span>
+    <ClientOnly fallback={
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">대시보드</h1>
+            <p className="text-muted-foreground">로딩 중...</p>
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">로딩 중...</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">---</div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
-
-      {/* 상단 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Portfolio Value</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${portfolioValue}</div>
-            <p className="text-xs text-green-600 flex items-center">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              {profitPercentage} from last month
+    }>
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">대시보드</h1>
+            <p className="text-muted-foreground">
+              포트폴리오 개요 및 거래 현황을 확인하세요
             </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Daily Volume</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${dailyVolume}</div>
-            <p className="text-xs text-muted-foreground">
-              +12.5% from yesterday
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Positions</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activePositions}</div>
-            <p className="text-xs text-muted-foreground">
-              2 profitable, 1 pending
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Profit</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{totalProfit}</div>
-            <p className="text-xs text-muted-foreground">
-              This month&apos;s earnings
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 메인 콘텐츠 탭 */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="quick-trade">Quick Trade</TabsTrigger>
-          <TabsTrigger value="flash-trade">Flash Trade</TabsTrigger>
-          <TabsTrigger value="quant-ai">Quant AI</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          {/* 실시간 시장 데이터 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2" />
-                  Market Overview
-                </CardTitle>
-                <CardDescription>Real-time cryptocurrency prices</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {Object.entries(prices).map(([symbol, price]) => (
-                    <div key={symbol} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="text-xs font-bold">{symbol.split('/')[0]?.slice(0, 2) || 'BTC'}</span>
-                        </div>
-                        <div>
-                          <div className="font-medium">{symbol}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {symbol.split('/')[0]} / {symbol.split('/')[1]}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold">${price.toFixed(2)}</div>
-                        <div className="text-sm text-green-600 flex items-center">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          +2.4%
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 활성 포지션 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Activity className="h-5 w-5 mr-2" />
-                  Active Positions
-                </CardTitle>
-                <CardDescription>Your current trading positions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {activePositionsList.length > 0 ? (
-                  <div className="space-y-3">
-                    {activePositionsList.slice(0, 3).map((position: any) => (
-                      <div key={position.id} className="p-3 border rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <Badge variant={position.direction === 'long' ? 'default' : 'destructive'}>
-                              {position.direction.toUpperCase()}
-                            </Badge>
-                            <span className="font-medium">{position.asset}</span>
-                          </div>
-                          <div className={`text-sm font-medium ${position.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {position.pnl >= 0 ? '+' : ''}${position.pnl}
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-                          <div>Amount: ${position.amount}</div>
-                          <div>Entry: ${position.entryPrice}</div>
-                          <div>Current: ${position.currentPrice}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No Active Positions</h3>
-                    <p className="text-muted-foreground text-sm">
-                      Start trading to see your positions here
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
+          <Button>
+            새로고침
+          </Button>
+        </div>
 
-          {/* 최근 거래 내역 */}
+        {/* 통계 카드들 */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Clock className="h-5 w-5 mr-2" />
-                Recent Trades
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                총 포트폴리오 가치
               </CardTitle>
-              <CardDescription>Your latest trading activity</CardDescription>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              {recentTrades.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Asset</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>P&L</TableHead>
-                      <TableHead>Time</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentTrades.slice(0, 5).map((trade: any) => (
-                      <TableRow key={trade.id}>
-                        <TableCell className="font-medium">{trade.asset}</TableCell>
-                        <TableCell>
-                          <Badge variant={trade.type === 'buy' ? 'default' : 'destructive'}>
-                            {trade.type.toUpperCase()}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>${trade.amount}</TableCell>
-                        <TableCell>${trade.price}</TableCell>
-                        <TableCell className={trade.pnl >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          {trade.pnl >= 0 ? '+' : ''}${trade.pnl}
-                        </TableCell>
-                        <TableCell>{new Date(trade.timestamp).toLocaleTimeString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <div className="text-center py-8">
-                  <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No Recent Trades</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Your trading history will appear here
-                  </p>
-                </div>
-              )}
+              <div className="text-2xl font-bold">{formatCurrency(45231.89)}</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600">{formatPercentage(20.1)}</span> 지난 달 대비
+              </p>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="quick-trade">
-          <QuickTradeModule />
-        </TabsContent>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                일일 거래량
+              </CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(12234.56)}</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600">{formatPercentage(5.2)}</span> 어제 대비
+              </p>
+            </CardContent>
+          </Card>
 
-        <TabsContent value="flash-trade">
-          <FlashTradeModule symbol="BTC/USDT" currentPrice={prices['BTC/USD']?.toString() || "43250.50"} />
-        </TabsContent>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                총 수익
+              </CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(5234.12)}</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600">{formatPercentage(12.5)}</span> 수익률
+              </p>
+            </CardContent>
+          </Card>
 
-        <TabsContent value="quant-ai">
-          <QuantAIModule />
-        </TabsContent>
-      </Tabs>
-    </AppLayout>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                활성 포지션
+              </CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">12</div>
+              <p className="text-xs text-muted-foreground">
+                3개 포지션 진행 중
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 최근 활동 */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+          <Card className="col-span-4">
+            <CardHeader>
+              <CardTitle>최근 거래</CardTitle>
+              <CardDescription>
+                최근 거래 내역을 확인하세요
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <Badge variant="outline" className="bg-green-50 text-green-700">
+                      매수
+                    </Badge>
+                    <div>
+                      <p className="font-medium">BTC/USDT</p>
+                      <p className="text-sm text-muted-foreground">0.5 BTC</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">{formatCurrency(42500)}</p>
+                    <p className="text-sm text-muted-foreground">2시간 전</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <Badge variant="outline" className="bg-red-50 text-red-700">
+                      매도
+                    </Badge>
+                    <div>
+                      <p className="font-medium">ETH/USDT</p>
+                      <p className="text-sm text-muted-foreground">2.5 ETH</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">{formatCurrency(6250)}</p>
+                    <p className="text-sm text-muted-foreground">5시간 전</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="col-span-3">
+            <CardHeader>
+              <CardTitle>포트폴리오 분포</CardTitle>
+              <CardDescription>
+                자산별 분포 현황
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                    <span className="text-sm">Bitcoin (BTC)</span>
+                  </div>
+                  <span className="text-sm font-medium">45%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span className="text-sm">Ethereum (ETH)</span>
+                  </div>
+                  <span className="text-sm font-medium">30%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-sm">USDT</span>
+                  </div>
+                  <span className="text-sm font-medium">25%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </ClientOnly>
   );
 }
 
-// Dynamic import로 SSR 문제 해결
-import dynamic from 'next/dynamic';
-export default dynamic(() => Promise.resolve(DashboardPage), { ssr: false }); 
+export default DashboardPage; 

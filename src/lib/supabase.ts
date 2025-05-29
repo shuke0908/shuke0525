@@ -1,21 +1,51 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase 설정
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gfzmwtvnktvvckzbybdl.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmem13dHZua3R2dmNremJ5YmRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3MjIwOTEsImV4cCI6MjA2MjI5ODA5MX0.LI_IZxoQ4bKEMeYGI7j-7LuR0HKGGLs0yOYC7s79Ogs';
+// Supabase 설정 확인
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// 클라이언트 사이드 Supabase 클라이언트
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Supabase가 제대로 설정되었는지 확인
+const isSupabaseConfigured = supabaseUrl && 
+  supabaseAnonKey && 
+  supabaseUrl.startsWith('https://') &&
+  supabaseAnonKey.length > 20;
+
+// 클라이언트 사이드 Supabase 클라이언트 (설정되어 있을 때만)
+export const supabase = isSupabaseConfigured 
+  ? createClient(supabaseUrl!, supabaseAnonKey!)
+  : null;
 
 // 서버 사이드 Supabase 클라이언트 (Service Role Key 사용)
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmem13dHZua3R2dmNremJ5YmRsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjcyMjA5MSwiZXhwIjoyMDYyMjk4MDkxfQ.m1q3Qeqiudk3I9E6i12FGZ9krQiOyN0_xJz5yiSMJtg';
+const isAdminConfigured = isSupabaseConfigured && 
+  supabaseServiceKey && 
+  supabaseServiceKey.length > 20;
 
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
+export const supabaseAdmin = isAdminConfigured
+  ? createClient(supabaseUrl!, supabaseServiceKey!, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+  : null;
+
+// Supabase 연결 상태 확인
+export const isSupabaseReady = () => {
+  return isSupabaseConfigured && isAdminConfigured;
+};
+
+// 개발 환경에서 상태 로그
+if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
+  console.log('🗄️ Supabase Status:');
+  console.log('  - Configured:', isSupabaseConfigured);
+  console.log('  - Admin Ready:', isAdminConfigured);
+  console.log('  - URL:', supabaseUrl ? 'Set' : 'Not set');
+  console.log('  - Keys:', {
+    anon: supabaseAnonKey ? 'Set' : 'Not set',
+    service: supabaseServiceKey ? 'Set' : 'Not set'
+  });
+}
 
 // 데이터베이스 타입 정의
 export interface User {
@@ -24,8 +54,10 @@ export interface User {
   firstName: string;
   lastName: string;
   password: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'superadmin';
   balance: number;
+  vipLevel?: number;
+  isActive?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -53,4 +85,31 @@ export interface AdminSettings {
   force_result?: 'win' | 'lose';
   created_at: string;
   updated_at: string;
+}
+
+// 안전한 Supabase 쿼리 헬퍼
+export async function safeSupabaseQuery<T>(
+  queryFn: () => Promise<{ data: T | null; error: any }>
+): Promise<{ data: T | null; error: any; isSupabaseAvailable: boolean }> {
+  if (!isSupabaseReady()) {
+    return {
+      data: null,
+      error: new Error('Supabase not configured'),
+      isSupabaseAvailable: false
+    };
+  }
+
+  try {
+    const result = await queryFn();
+    return {
+      ...result,
+      isSupabaseAvailable: true
+    };
+  } catch (error) {
+    return {
+      data: null,
+      error,
+      isSupabaseAvailable: true
+    };
+  }
 }

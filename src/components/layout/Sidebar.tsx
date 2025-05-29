@@ -1,5 +1,6 @@
 import React from "react";
-import { Link, useLocation } from "wouter";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,9 @@ import {
   ShieldCheckIcon,
   BellIcon,
   MessageSquareIcon,
+  FolderIcon,
+  CrownIcon,
+  UserIcon,
   // 관리자 메뉴 아이콘
   LayoutDashboardIcon,
   UsersIcon,
@@ -74,10 +78,10 @@ interface MenuSection {
  * - 사용자 프로필 영역
  */
 export function Sidebar({ variant = "user", className }: SidebarProps) {
-  const [location] = useLocation();
+  const pathname = usePathname();
   const { user, logout } = useAuth();
 
-  // 사용자 메뉴 구성
+  // 사용자 메뉴 구성 (요구사항에 정확히 맞춤)
   const userMenuSections: MenuSection[] = [
     {
       items: [
@@ -88,22 +92,25 @@ export function Sidebar({ variant = "user", className }: SidebarProps) {
       title: "거래",
       items: [
         { name: "일반 거래", path: "/quick-trade", icon: TrendingUpIcon },
-        { name: "초단기 거래", path: "/flash-trade", icon: ZapIcon },
+        { name: "플래시 트레이드", path: "/flash-trade", icon: ZapIcon },
         { name: "AI 자동매매", path: "/quant-ai", icon: CpuIcon },
       ],
     },
     {
-      title: "계정",
+      title: "관리",
       items: [
-        { name: "지갑", path: "/wallet", icon: WalletIcon },
-        { name: "KYC 인증", path: "/kyc-verification", icon: ShieldCheckIcon },
-        { name: "알림 센터", path: "/notifications", icon: BellIcon },
-        { name: "고객센터", path: "/support", icon: MessageSquareIcon },
+        { name: "지갑", path: "/dashboard/wallet/overview", icon: WalletIcon },
+        { name: "포트폴리오", path: "/portfolio", icon: FolderIcon },
+        { name: "KYC 인증", path: "/dashboard/kyc", icon: ShieldCheckIcon },
+        { name: "VIP 정보", path: "/dashboard/vip", icon: CrownIcon },
+        { name: "알림 센터", path: "/dashboard/notifications", icon: BellIcon },
+        { name: "고객센터", path: "/dashboard/support", icon: MessageSquareIcon },
+        { name: "회원정보", path: "/dashboard/profile", icon: UserIcon },
       ],
     },
   ];
 
-  // 관리자 메뉴 구성
+  // 관리자 메뉴 구성 (요구사항에 정확히 맞춤)
   const adminMenuSections: MenuSection[] = [
     {
       items: [
@@ -111,39 +118,27 @@ export function Sidebar({ variant = "user", className }: SidebarProps) {
       ],
     },
     {
-      title: "모니터링",
+      title: "실시간 현황",
       items: [
-        { name: "Flash Trades", path: "/admin/flash-trade", icon: TimerIcon, badge: 2 },
-        { name: "Active Investments", path: "/admin/quant-ai", icon: BarChart3Icon, badge: 5 },
+        { name: "플래시 트레이드", path: "/admin/flash-trade", icon: TimerIcon },
+        { name: "AI 투자", path: "/admin/quant-ai", icon: BarChart3Icon },
       ],
     },
     {
-      title: "대기 중인 요청",
+      title: "미승인 요청",
       items: [
-        { name: "KYC 인증", path: "/admin/kyc", icon: ShieldCheckIcon, badge: 24 },
         { name: "입금 관리", path: "/admin/deposits", icon: ArrowDownToLineIcon, badge: 16 },
         { name: "출금 관리", path: "/admin/withdrawals", icon: ArrowUpFromLineIcon, badge: 12 },
-        { name: "고객센터", path: "/admin/support", icon: MessageSquareIcon, badge: 8 },
+        { name: "KYC 인증", path: "/admin/kyc", icon: ShieldCheckIcon, badge: 24 },
+        { name: "상담 요청", path: "/admin/support", icon: MessageSquareIcon, badge: 8 },
       ],
     },
     {
-      title: "관리",
+      title: "전문 관리",
       items: [
-        { name: "회원 관리", path: "/admin/users", icon: UsersIcon },
-        { name: "관리자 권한", path: "/admin/access", icon: UserCogIcon },
-      ],
-    },
-    {
-      title: "설정",
-      collapsible: true,
-      items: [
-        { name: "Flash Trade 설정", path: "/admin/flash-trade-settings", icon: ActivityIcon },
-        { name: "QuantAI 설정", path: "/admin/quant-ai-settings", icon: BarChart4Icon },
-        { name: "지원 코인", path: "/admin/coins", icon: CoinsIcon },
-        { name: "보너스 프로그램", path: "/admin/bonus", icon: GiftIcon },
-        { name: "보안 설정", path: "/admin/security", icon: ShieldIcon },
-        { name: "알림 설정", path: "/admin/notifications", icon: BellIcon },
-        { name: "시스템 설정", path: "/admin/settings", icon: SettingsIcon },
+        { name: "사용자 관리", path: "/admin/users", icon: UsersIcon },
+        { name: "플래시 트레이드 설정", path: "/admin/flash-trade-settings", icon: ActivityIcon },
+        { name: "QuantAI 관리", path: "/admin/quant-ai-settings", icon: BarChart4Icon },
       ],
     },
   ];
@@ -151,9 +146,9 @@ export function Sidebar({ variant = "user", className }: SidebarProps) {
   const menuSections = variant === "admin" ? adminMenuSections : userMenuSections;
 
   const isActive = (path: string) => {
-    if (path === "/dashboard" && location === "/dashboard") return true;
-    if (path === "/admin" && location === "/admin") return true;
-    if (path !== "/" && location.startsWith(path)) return true;
+    if (path === "/dashboard" && pathname === "/dashboard") return true;
+    if (path === "/admin" && pathname === "/admin") return true;
+    if (path !== "/" && pathname.startsWith(path)) return true;
     return false;
   };
 
@@ -170,7 +165,7 @@ export function Sidebar({ variant = "user", className }: SidebarProps) {
     )}>
       {/* 로고 및 브랜딩 영역 */}
       <div className="p-4 border-b">
-        <Link href={variant === "admin" ? "/admin" : "/dashboard"}>
+        <Link href={variant === "admin" ? "/admin" : "/dashboard"} className="block">
           <div className="flex items-center space-x-2">
             <div className="h-9 w-9 rounded-md bg-primary flex items-center justify-center">
               <ShieldIcon className="h-5 w-5 text-white" />
@@ -195,95 +190,35 @@ export function Sidebar({ variant = "user", className }: SidebarProps) {
               </h3>
             )}
             
-            {section.collapsible ? (
-              <Collapsible className="w-full">
-                <CollapsibleTrigger className="flex items-center justify-between px-3 py-2 text-sm rounded-md transition-colors w-full text-left text-foreground hover:bg-muted">
-                  <span className="flex items-center">
-                    <SettingsIcon className="mr-3 h-4 w-4" />
-                    {section.title}
-                  </span>
-                  <ChevronDownIcon className="h-4 w-4" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-3 space-y-1 mt-1">
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    const active = isActive(item.path);
-                    
-                    return (
-                      <Link key={item.path} href={item.path}>
-                        <Button
-                          variant={active ? "default" : "ghost"}
-                          className={cn(
-                            "w-full justify-between text-sm font-medium",
-                            active 
-                              ? "bg-primary text-primary-foreground" 
-                              : "text-foreground hover:bg-muted"
-                          )}
-                        >
-                          <span className="flex items-center">
-                            <Icon className="mr-3 h-4 w-4" />
-                            {item.name}
-                          </span>
-                          {item.badge && (
-                            <Badge className="ml-auto bg-red-500 text-white">
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </Button>
-                      </Link>
-                    );
-                  })}
-                </CollapsibleContent>
-              </Collapsible>
-            ) : (
-              <div className="space-y-1">
-                {section.items.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.path);
-                  
-                  return (
-                    <Link key={item.path} href={item.path}>
-                      <Button
-                        variant={active ? "default" : "ghost"}
-                        className={cn(
-                          "w-full justify-between text-sm font-medium",
-                          active 
-                            ? "bg-primary text-primary-foreground" 
-                            : "text-foreground hover:bg-muted"
-                        )}
-                      >
-                        <span className="flex items-center">
-                          <Icon className="mr-3 h-4 w-4" />
-                          {item.name}
-                        </span>
-                        {item.badge && (
-                          <Badge className={cn(
-                            "ml-auto",
-                            typeof item.badge === 'number' && item.badge > 0
-                              ? "bg-red-500 text-white"
-                              : "bg-orange-500 text-white"
-                          )}>
-                            {item.badge}
-                          </Badge>
-                        )}
-                      </Button>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
+            <div className="space-y-1">
+              {section.items.map((item) => (
+                <Link key={item.path} href={item.path} className="block">
+                  <Button
+                    variant={isActive(item.path) ? "default" : "ghost"}
+                    className={cn(
+                      "w-full justify-start text-sm font-medium",
+                      isActive(item.path)
+                        ? "bg-primary text-primary-foreground"
+                        : "text-foreground hover:bg-muted"
+                    )}
+                  >
+                    <item.icon className="h-4 w-4 mr-3" />
+                    {item.name}
+                    {item.badge && (
+                      <Badge variant="destructive" className="ml-auto">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </Button>
+                </Link>
+              ))}
+            </div>
           </div>
         ))}
       </nav>
 
-      {/* 사용자 프로필 및 설정 영역 */}
-      <div className="p-4 border-t mt-auto">
-        {/* 테마 토글 */}
-        <div className="flex justify-center mb-4">
-          <ModeToggle />
-        </div>
-
-        {/* 사용자 프로필 */}
+      {/* 사용자 프로필 영역 */}
+      <div className="p-4 border-t">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="w-full justify-start p-2">
@@ -294,35 +229,32 @@ export function Sidebar({ variant = "user", className }: SidebarProps) {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 text-left">
-                <p className="text-sm font-medium">{displayName}</p>
-                <p className="text-xs text-muted-foreground">{userRole}</p>
+                <div className="text-sm font-medium">{displayName}</div>
+                <div className="text-xs text-muted-foreground">{userRole}</div>
               </div>
+              <ChevronDownIcon className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>내 계정</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <Link href="/settings">
-              <DropdownMenuItem>
-                <SettingsIcon className="mr-2 h-4 w-4" />
-                <span>설정</span>
-              </DropdownMenuItem>
-            </Link>
-            {variant === "admin" && (
-              <Link href="/dashboard">
-                <DropdownMenuItem>
-                  <HomeIcon className="mr-2 h-4 w-4" />
-                  <span>사용자 모드로 전환</span>
-                </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings">
+                <SettingsIcon className="h-4 w-4 mr-2" />
+                설정
               </Link>
-            )}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>
-              <LogOutIcon className="mr-2 h-4 w-4" />
-              <span>로그아웃</span>
+              <LogOutIcon className="h-4 w-4 mr-2" />
+              로그아웃
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        
+        <div className="mt-3 flex justify-center">
+          <ModeToggle />
+        </div>
       </div>
     </div>
   );

@@ -195,6 +195,8 @@ export default function RegisterPage() {
                       <div className='flex items-center space-x-2'>
                         <FormControl>
                           <Checkbox 
+                            id="acceptTerms"
+                            data-testid="accept-terms-checkbox"
                             checked={field.value}
                             onCheckedChange={field.onChange}
                             onBlur={field.onBlur}
@@ -202,7 +204,10 @@ export default function RegisterPage() {
                             ref={field.ref}
                           />
                         </FormControl>
-                        <FormLabel className='text-sm font-normal'>
+                        <FormLabel 
+                          htmlFor="acceptTerms"
+                          className='text-sm font-normal cursor-pointer'
+                        >
                           I accept the{' '}
                           <a
                             href='/terms'
